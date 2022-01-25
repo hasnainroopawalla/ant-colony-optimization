@@ -1,9 +1,7 @@
 from dataclasses import dataclass, field
 import random
 import math
-from typing import Dict, List
-
-from numpy import disp
+from typing import Dict, List, Optional, Tuple
 
 
 @dataclass
@@ -137,36 +135,68 @@ class Graph:
         """
         return list(self.graph.keys())
 
-    def get_all_edges(self):
-        """Returns a List of all the nodes in the graph.
+    def get_all_edges(self) -> List[Tuple[str, str, float]]:
+        """Returns all the edges in the graph.
 
         Returns:
-            List[str]: A List of all the nodes in the graph.
+            List[Tuple[str, str, float]]: A List of Tuples -> (source, destination, travel_time)
         """
         edges = []
         for source in self.graph:
-            for destination in self.graph[source]["neighbors"]:
+            for destination in self.graph[source].edges:
                 edges.append(
-                    (source, destination, self.graph[source]["neighbors"][destination])
+                    (
+                        source,
+                        destination,
+                        self.graph[source].edges[destination].travel_time,
+                    )
                 )
         return edges
 
-    def get_node(self, node):
-        if self.node_exists(node):
-            return self.graph[node]
+    def get_node(self, id: str) -> Optional[Node]:
+        """Returns the Node if it is present in the graph.
+
+        Args:
+            id (str): The ID of the Node.
+
+        Returns:
+            Optional[Node]: The Node if it exists otherwise returns None.
+        """
+        if self.node_exists(id):
+            return self.graph[id]
         return None
 
-    def get_neighbors(self, node):
+    def get_neighbors(self, id: str) -> List[str]:
+        """Returns all the neighbors of a Node in the graph.
+
+        Args:
+            id (str): The ID of the Node.
+
+        Returns:
+            List[str]: A List of all the neighbors of that Node.
+        """
+        if not self.node_exists(id):
+            return []
         neighbors = []
-        if self.node_exists(node):
-            for neighbor in self.graph[node]["neighbors"]:
-                neighbors.append(neighbor)
+        for neighbor in self.graph[id].edges:
+            neighbors.append(neighbor)
         return neighbors
 
-    def get_travel_times(self, node):
-        if self.node_exists(node):
-            return list(self.graph[node]["neighbors"].values())
-        return None
+    def get_travel_times(self, id: str) -> List[float]:
+        """Returns a List of travel times of all the edges of the Node.
+
+        Args:
+            id (str): The ID of the Node.
+
+        Returns:
+            List[float]: A List of travel times of all the edges of the Node.
+        """
+        if not self.node_exists(id):
+            return []
+        travel_times = []
+        for _, edge in self.graph[id].edges.items():
+            travel_times.append(edge.travel_time)
+        return travel_times
 
     def get_edge_time(self, source, destination):
         if not self.node_exists(source):
@@ -384,18 +414,3 @@ class Graph:
 
 #     def add_edge(self, src, dest):
 #         self.graph[src].add_edge(dest)
-
-
-G = Graph()
-
-G.add_node("A")
-G.add_node("B")
-G.add_node("C")
-
-
-G.add_edge("A", "B", 5)
-G.add_edge("A", "C", 8)
-G.add_edge("B", "C", 56)
-G.add_edge("C", "A", 33)
-
-print(G.get_all_edges())
