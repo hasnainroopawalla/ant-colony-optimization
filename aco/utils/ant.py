@@ -1,115 +1,105 @@
+from dataclasses import dataclass, field
 import random
+from typing import Dict, List
+
+from aco.graph import Edge, Graph
 
 
+@dataclass
 class Ant:
+    graph: Graph
+    source: str
+    destination: str = str
+    path: List[str] = field(default_factory=list)
 
-    graph = None
-
-    def __init__(self, source, destination):
-        self.source = source
-        self.destination = destination
+    def __post_init__(self) -> None:
         self.current_node = self.source
-        self.path_taken = []
 
-    def update_destination(self, destination):
-        self.destination = destination
+    # def update_destination(self, destination):
+    #     self.destination = destination
 
-    def update_source(self, source):
-        self.source = source
+    # def update_source(self, source):
+    #     self.source = source
 
-    def update_current(self, curr):
-        self.current_node = curr
+    # def update_current(self, curr):
+    #     self.current_node = curr
 
-    def reset_paths(self):
-        self.path_taken = []
-        self.path_to_take = []
+    # def reset_paths(self):
+    #     self.path_taken = []
+    #     self.path_to_take = []
 
-    def take_step(self):
-        # Return true if already reached destination
-        if self.current_node == self.destination:
-            return True
+    def reached_destination(self) -> bool:
+        return self.current_node == self.destination
 
-        Ant.graph.get_node(self.current_node)["visited"] = True
+    def _get_unvisited_neighbors(self, all_neighbors) -> Dict[str, Edge]:
+        unvisited_neighbors = {}
+        for neighbor, edge in all_neighbors.items():
+            if self.graph.get_node(neighbor).visited is False:
+                unvisited_neighbors[neighbor] = edge
+        return unvisited_neighbors
 
-        # Take a random neighbor from current position
-        all_neighbors = Ant.graph.get_neighbors(self.current_node)
-        phero_values = Ant.graph.get_pheromones(self.current_node)
-        travel_length = Ant.graph.get_travel_times(self.current_node)
-        alpha = Ant.graph.get_alpha()
-        beta = Ant.graph.get_beta()
-
-        # If there are no neighbors. Special case - isolated intersection
-        if len(all_neighbors) == 0:
-            return False
-
-        # Already visited or not
-        chosen_neighbors = []
-        for neigh in all_neighbors:
-            if not Ant.graph.get_node(neigh)["visited"]:
-                chosen_neighbors.append(neigh)
-
-        # Randomly select a neighbor from current node and add that in the
-        # path_taken list
+    @staticmethod
+    def _calculate_edges_total(unvisited_neighbors, alpha, beta):
         total = 0.0
-        probabilities = {}
-        for i in range(len(all_neighbors)):
-            total += (phero_values[i] ** alpha) * ((1 / travel_length[i]) ** beta)
+        for neighbor, edge in unvisited_neighbors.items():
+            total += (edge.pheromone ** alpha) * ((1 / edge.travel_time) ** beta)
+        return total
 
-        # print(chosen_neighbors)
-        for i in range(len(chosen_neighbors)):
-            probabilities[chosen_neighbors[i]] = (
-                (phero_values[i] ** alpha) * ((1 / travel_length[i]) ** beta)
+    @staticmethod
+    def _calculate_edge_probabilites_and_sort(unvisited_neighbors, total, alpha, beta):
+        probabilities = {}
+        for neighbor, edge in unvisited_neighbors.items():
+            probabilities[neighbor] = (
+                (edge.pheromone ** alpha) * ((1 / edge.travel_time) ** beta)
             ) / total
 
         sorted_probabilities = {
             k: v for k, v in sorted(probabilities.items(), key=lambda item: -item[1])
         }
-        sorted_neighbors = list(sorted_probabilities)
-        sorted_values = list(sorted_probabilities.values())
 
-        # Selection using a threshold value epsilon
-        eps = 0.1
-        candidates = []
+        return sorted_probabilities
 
-        if len(sorted_probabilities) == 1:
-            candidates.append(sorted_neighbors[0])
-        else:
-            for i in range(len(sorted_probabilities) - 1):
-                if (sorted_values[i] - sorted_values[i + 1]) < eps:
-                    candidates.append(sorted_neighbors[i])
-                    if i == len(sorted_probabilities) - 2:
-                        candidates.append(sorted_neighbors[i + 1])
-                else:
-                    candidates.append(sorted_neighbors[i])
-                    break
+    @staticmethod
+    def _choose_next_node(cumulative_sum):
+        max = sum(cumulative_sum.values())
+        pick = random.uniform(0, max)
+        current = 0
+        for key, value in cumulative_sum.items():
+            current += value
+            if current > pick:
+                return key
 
-        # Selection using random weighted choice with the probabilities
-        selected_neighbor = random.choices(
-            sorted_neighbors, weights=sorted_values, k=1
-        )[0]
+    def _choose_neighbor_using_roulette_wheel(self, sorted_probabilities):
+        next_node = self._choose_next_node(sorted_probabilities)
+        return next_node
 
-        Ant.graph.update_pheromones(self.current_node, selected_neighbor)
+    def take_step(self):
+        self.graph.mark_node_as_visited(self.current_node)
 
-        self.path_taken.append(
-            {
-                "start": self.current_node,
-                "end": selected_neighbor,
-                "time_spent": Ant.graph.get_edge_time(
-                    self.current_node, selected_neighbor
-                ),
-            }
+        all_neighbors = self.graph.get_node_edges(self.current_node)
+
+        # Check if there are no neighbors
+        if len(all_neighbors) == 0:
+            return False
+
+        # Find unvisited neighbors
+        unvisited_neighbors = self._get_unvisited_neighbors(all_neighbors)
+
+        total = self._calculate_edges_total(
+            unvisited_neighbors, self.graph.alpha, self.graph.beta
+        )
+        sorted_probabilities = self._calculate_edge_probabilites_and_sort(
+            unvisited_neighbors, total, self.graph.alpha, self.graph.beta
         )
 
-        # Update current position
-        self.current_node = selected_neighbor
+        next_node = self._roulette_wheel(sorted_probabilities)
 
-        return False
+        self.path.append((self.current_node, next_node))
+
+        self.current_node = next_node
 
     def get_path_taken(self):
         return self.path_taken
-
-    def get_graph(self):
-        return Ant.graph
 
     def get_time_spent(self):
         time_spent = 0
@@ -119,44 +109,24 @@ class Ant:
         return time_spent
 
 
-def runACO(G, source, destination):
-    Ant.graph = G
+def runACO(G: Graph, source: str, destination: str):
 
     ant_paths = []
-    iterations = 50
+    max_iterations = 50
 
-    ants = [
-        Ant(source, destination),
-        Ant(source, destination),
-        Ant(source, destination),
-        Ant(source, destination),
-        Ant(source, destination),
-        Ant(source, destination),
-    ]
+    # ants = [
+    #     Ant(G, source, destination),
+    #     Ant(G, source, destination),
+    #     Ant(G, source, destination),
+    #     Ant(G, source, destination),
+    #     Ant(G, source, destination),
+    #     Ant(G, source, destination),
+    # ]
 
-    for ant in ants:  # this should happen in parallel processes
-        for node in G.get_all_nodes():
-            G.get_node(node)["visited"] = False
+    ant = Ant(G, source, destination)
 
-        for i in range(iterations):
-            if ant.take_step():
-                ant_paths.append(ant.get_path_taken())
-                break
-
-    # Update the pheromones values
-    G.evaporate()
-    for path_taken in ant_paths:
-        for path in path_taken:
-            G.add_phero(path["start"], path["end"])
-
-    # Return list corresponding to the path
-    path = [source]
-    node = source
-    while node != destination:
-        Ant.graph.get_node(node)["visited"] = True
-        pheros = G.graph[node]["pheromones"]
-        max_neighbor = max(pheros, key=pheros.get)
-        path.append(max_neighbor)
-        node = max_neighbor
-
-    return path
+    for i in range(max_iterations):
+        if ant.reached_destination():
+            print(ant.path)
+            pass
+        ant.take_step()

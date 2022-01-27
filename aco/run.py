@@ -5,7 +5,8 @@ from utils.plot import PerfomancePlot
 from utils.antnet import runAntNet
 from utils.ant import runACO
 
-G = Graph(0.9, 0.1, 0.2)
+G = Graph()
+
 G.add_node("A")
 G.add_node("B")
 
@@ -64,10 +65,10 @@ Insert AntNet, ACO and Dijkstra function calls in this loop:
 """
 P = PerfomancePlot()
 aco_path = runACO(G, source, destination)
-dijkstra_path = Dijkstra(G).get_shortest_path(source=source, destination=destination)
+# dijkstra_path = Dijkstra(G).get_shortest_path(source=source, destination=destination)
 
 print(f"ACO: {aco_path}")
-print(f"Dij: {dijkstra_path}")
+# print(f"Dij: {dijkstra_path}")
 
 # antnet_dj_same_cost_counter = 0
 

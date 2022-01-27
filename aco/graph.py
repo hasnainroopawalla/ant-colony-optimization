@@ -7,7 +7,7 @@ from typing import Dict, List, Optional, Tuple
 @dataclass
 class Edge:
     travel_time: float
-    phero: float = 1.0
+    pheromone: float = 1.0
     traffic_stat: Dict[str, float] = field(default_factory=dict)
 
 
@@ -153,6 +153,9 @@ class Graph:
                 )
         return edges
 
+    def get_node_edges(self, id: str) -> Dict[str, Edge]:
+        return self.graph[id].edges
+
     def get_node(self, id: str) -> Optional[Node]:
         """Returns the Node if it is present in the graph.
 
@@ -197,6 +200,22 @@ class Graph:
         for _, edge in self.graph[id].edges.items():
             travel_times.append(edge.travel_time)
         return travel_times
+
+    def mark_node_as_visited(self, id: str) -> None:
+        """Marks a Node as visited in the graph.
+
+        Args:
+            id (str): The ID of the Node.
+        """
+        self.graph[id].visited = True
+
+    def mark_node_as_unvisited(self, id: str) -> None:
+        """Marks a Node as unvisited in the graph.
+
+        Args:
+            id (str): The ID of the Node.
+        """
+        self.graph[id].visited = False
 
     def get_edge_time(self, source, destination):
         if not self.node_exists(source):
@@ -358,9 +377,12 @@ class Graph:
 
     # Getting the pheromones vlaues of the edges from which node is the source
     def get_pheromones(self, node):
-        if self.node_exists(node):
-            return list(self.graph[node]["pheromones"].values())
-        return None
+        if not self.node_exists(id):
+            return []
+        pheromones = []
+        for _, edge in self.graph[id].edges.items():
+            pheromones.append(edge.pheromone)
+        return pheromones
 
     @property
     def get_alpha(self):
