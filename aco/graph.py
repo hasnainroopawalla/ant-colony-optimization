@@ -7,7 +7,7 @@ from typing import Dict, List, Optional, Tuple
 @dataclass
 class Edge:
     travel_time: float
-    pheromone: float = 1.0
+    pheromones: float = 1.0
     traffic_stat: Dict[str, float] = field(default_factory=dict)
 
 
@@ -24,19 +24,6 @@ class Node:
     def add_edge(self, destination: str, travel_time: float):
         self.edges[destination] = Edge(travel_time)
         self.routing_table[destination] = 0.0
-
-
-# @dataclass
-# class Graph:
-#     def __init__(self) -> None:
-#         self.graph = {}
-
-#     def add_node(self, name):
-#         node = Node(name)
-#         self.graph[name] = node
-
-#     def add_edge(self, src, dest):
-#         self.graph[src].add_edge(dest)
 
 
 @dataclass
@@ -257,7 +244,7 @@ class Graph:
         """
         for node_id, node in self.graph.items():
             for neighbor, edge in self.graph[node_id].edges.items():
-                edge.pheromone = (1 - self.evaporation_rate) * edge.pheromone
+                edge.pheromones = (1 - self.evaporation_rate) * edge.pheromones
 
     def deposit_phermones_on_edge(
         self, source: str, destination: str, new_phermones: float
@@ -269,7 +256,7 @@ class Graph:
             destination (str): The destination node of the edge.
             new_phermones (float): The amount of phermones to be added to the existing value on the edge.
         """
-        self.graph[source].edges[destination].pheromone += new_phermones
+        self.graph[source].edges[destination].pheromones += new_phermones
 
     def deposit_pheromones_along_path(self, path: List[str]) -> None:
         """Updates the phermones along all the edges in the path.
@@ -423,32 +410,6 @@ class Graph:
             display.append("Edges:")
             for edge_id, edge in node.edges.items():
                 display.append(
-                    f"{node_id} -> {edge_id}, Travel Time: {edge.travel_time}, Pheromones: {edge.pheromone}, Traffic Status: {edge.traffic_stat}"
+                    f"{node_id} -> {edge_id}, Travel Time: {edge.travel_time}, Pheromones: {edge.pheromones}, Traffic Status: {edge.traffic_stat}"
                 )
         return "\n".join(display)
-
-
-# class Node:
-#     def __init__(self, name) -> None:
-#         self.name = name
-#         self.edges = {}
-
-#     def add_edge(self, to):
-#         self.edges[to] = Edge(3, 7)
-
-# class Edge:
-#     def __init__(self, traffic, phero) -> None:
-#         self.traffic = traffic
-#         self.phero = phero
-
-
-# class Graph:
-#     def __init__(self) -> None:
-#         self.graph = {}
-
-#     def add_node(self, name):
-#         node = Node(name)
-#         self.graph[name] = node
-
-#     def add_edge(self, src, dest):
-#         self.graph[src].add_edge(dest)

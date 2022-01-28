@@ -17,19 +17,6 @@ class Ant:
         self.current_node = self.source
         self.path.append(self.source)
 
-    # def update_destination(self, destination):
-    #     self.destination = destination
-
-    # def update_source(self, source):
-    #     self.source = source
-
-    # def update_current(self, curr):
-    #     self.current_node = curr
-
-    # def reset_paths(self):
-    #     self.path_taken = []
-    #     self.path_to_take = []
-
     def reached_destination(self) -> bool:
         return self.current_node == self.destination
 
@@ -144,11 +131,3 @@ def runACO(G: Graph, source: str, destination: str):
         current_node = max_neighbor
 
     return path
-
-
-pheros = {
-    "B": Edge(travel_time=2, pheromone=1.0, traffic_stat={}),
-    "H": Edge(travel_time=2, pheromone=1.15, traffic_stat={}),
-}
-
-print()
