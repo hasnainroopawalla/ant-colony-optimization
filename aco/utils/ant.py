@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 import random
-from typing import Dict, List
+from typing import Dict, List, Set
 
 from aco.graph import Edge, Graph
 
@@ -9,11 +9,13 @@ from aco.graph import Edge, Graph
 class Ant:
     graph: Graph
     source: str
-    destination: str = str
+    destination: str
+    visited_nodes: Set = field(default_factory=set)
     path: List[str] = field(default_factory=list)
 
     def __post_init__(self) -> None:
         self.current_node = self.source
+        self.path.append(self.source)
 
     # def update_destination(self, destination):
     #     self.destination = destination
@@ -34,8 +36,10 @@ class Ant:
     def _get_unvisited_neighbors(self, all_neighbors) -> Dict[str, Edge]:
         unvisited_neighbors = {}
         for neighbor, edge in all_neighbors.items():
-            if self.graph.get_node(neighbor).visited is False:
-                unvisited_neighbors[neighbor] = edge
+            if neighbor in self.visited_nodes:
+                continue
+            # self.graph.get_node(neighbor).visited is False:
+            unvisited_neighbors[neighbor] = edge
         return unvisited_neighbors
 
     @staticmethod
@@ -74,13 +78,14 @@ class Ant:
         return next_node
 
     def take_step(self):
-        self.graph.mark_node_as_visited(self.current_node)
+        self.visited_nodes.add(self.current_node)
+        # self.graph.mark_node_as_visited(self.current_node)
 
         all_neighbors = self.graph.get_node_edges(self.current_node)
 
         # Check if there are no neighbors
         if len(all_neighbors) == 0:
-            return False
+            return []
 
         # Find unvisited neighbors
         unvisited_neighbors = self._get_unvisited_neighbors(all_neighbors)
@@ -92,41 +97,58 @@ class Ant:
             unvisited_neighbors, total, self.graph.alpha, self.graph.beta
         )
 
-        next_node = self._roulette_wheel(sorted_probabilities)
+        next_node = self._choose_neighbor_using_roulette_wheel(sorted_probabilities)
 
-        self.path.append((self.current_node, next_node))
-
+        self.path.append(next_node)
         self.current_node = next_node
-
-    def get_path_taken(self):
-        return self.path_taken
-
-    def get_time_spent(self):
-        time_spent = 0
-        for path in self.path_taken:
-            time_spent += path["time_spent"]
-
-        return time_spent
 
 
 def runACO(G: Graph, source: str, destination: str):
-
-    ant_paths = []
     max_iterations = 50
+    cycles = 2
 
-    # ants = [
-    #     Ant(G, source, destination),
-    #     Ant(G, source, destination),
-    #     Ant(G, source, destination),
-    #     Ant(G, source, destination),
-    #     Ant(G, source, destination),
-    #     Ant(G, source, destination),
-    # ]
+    for cycle in range(cycles):
+        ants: List[Ant] = [Ant(G, source, destination), Ant(G, source, destination)]
+        print("-----")
+        print(f"Cycle {cycle}")
 
-    ant = Ant(G, source, destination)
+        # Forward ants
+        for idx, ant in enumerate(ants):
+            print(f"Ant {idx}")
+            for i in range(max_iterations):
+                if ant.reached_destination():
+                    print(ant.path)
+                    break
+                ant.take_step()
 
-    for i in range(max_iterations):
-        if ant.reached_destination():
+        G.evaporate()
+        print(G)
+        print("--- BACKWARD ---")
+        # Backward ants
+        for idx, ant in enumerate(ants):
+            print(f"Ant {idx}")
             print(ant.path)
-            pass
-        ant.take_step()
+            G.deposit_pheromones_along_path(ant.path)
+
+    print()
+    print()
+    print(G)
+    path = [source]
+    current_node = source
+    visited_nodes = set()
+    while current_node != destination:
+        visited_nodes.add(current_node)
+        pheros = G.get_node_edges(current_node)
+        max_neighbor = max(pheros, key=lambda k: pheros[k].pheromone)
+        path.append(max_neighbor)
+        current_node = max_neighbor
+
+    return path
+
+
+pheros = {
+    "B": Edge(travel_time=2, pheromone=1.0, traffic_stat={}),
+    "H": Edge(travel_time=2, pheromone=1.15, traffic_stat={}),
+}
+
+print()

@@ -67,7 +67,7 @@ P = PerfomancePlot()
 aco_path = runACO(G, source, destination)
 # dijkstra_path = Dijkstra(G).get_shortest_path(source=source, destination=destination)
 
-print(f"ACO: {aco_path}")
+print(f"ACO: {aco_path}, Cost: {G.compute_path_travel_time(aco_path)}")
 # print(f"Dij: {dijkstra_path}")
 
 # antnet_dj_same_cost_counter = 0

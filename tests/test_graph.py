@@ -32,3 +32,7 @@ def test_get_neighbors() -> None:
 
 def test_get_travel_times() -> None:
     assert G.get_travel_times("A") == [5, 8]
+
+
+def test_compute_path_travel_time() -> None:
+    assert G.compute_path_travel_time(["A", "B", "C"]) == 61.0

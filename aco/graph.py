@@ -77,7 +77,7 @@ class Graph:
     graph: Dict[str, Node] = field(default_factory=dict)
     alpha: float = 0.9
     beta: float = 0.1
-    evap: float = 0.1
+    evaporation_rate: float = 0.1
     w_max: int = 7
 
     def node_exists(self, id: str) -> bool:
@@ -217,16 +217,69 @@ class Graph:
         """
         self.graph[id].visited = False
 
-    def get_edge_time(self, source, destination):
+    def get_edge_travel_time(self, source: str, destination: str) -> float:
+        """Returns the travel time of the specified edge if it exists.
+
+        Args:
+            source (str): The source node of the edge.
+            destination (str): The destination of the edge.
+
+        Returns:
+            float: The travel time of that edge.
+        """
         if not self.node_exists(source):
-            return None
+            return float("inf")
         if not self.node_exists(destination):
-            return None
+            return float("inf")
+        if not destination in self.graph[source].edges:
+            return float("inf")
+        return self.graph[source].edges[destination].travel_time
 
-        if destination in self.graph[source]["neighbors"]:
-            return self.graph[source]["neighbors"][destination]
+    def compute_path_travel_time(self, path: List[str]) -> float:
+        """Computes the cost of a path (a list of node IDs).
 
-        return None
+        Args:
+            path (List[str]): The ID of the nodes in the path.
+
+        Returns:
+            float: The total travel time of the specified path.
+        """
+        cost = 0.0
+        for i in range(len(path) - 1):
+            if self.edge_exists(path[i], path[i + 1]):
+                cost += self.get_edge_travel_time(path[i], path[i + 1])
+            else:
+                return float("inf")
+        return cost
+
+    def evaporate(self) -> None:
+        """Evaporates the phermone values of all the edges given the evaporation parameter (rho).
+        """
+        for node_id, node in self.graph.items():
+            for neighbor, edge in self.graph[node_id].edges.items():
+                edge.pheromone = (1 - self.evaporation_rate) * edge.pheromone
+
+    def deposit_phermones_on_edge(
+        self, source: str, destination: str, new_phermones: float
+    ) -> None:
+        """Updates the phermones on an edge in the graph.
+
+        Args:
+            source (str): The source node of the edge.
+            destination (str): The destination node of the edge.
+            new_phermones (float): The amount of phermones to be added to the existing value on the edge.
+        """
+        self.graph[source].edges[destination].pheromone += new_phermones
+
+    def deposit_pheromones_along_path(self, path: List[str]) -> None:
+        """Updates the phermones along all the edges in the path.
+
+        Args:
+            path (List[str]): The path followed by the ant.
+        """
+        path_cost = self.compute_path_travel_time(path)
+        for i in range(len(path) - 1):
+            self.deposit_phermones_on_edge(path[i], path[i + 1], 1 / path_cost)
 
     def delete_node(self, node):
         if self.node_exists(node):
@@ -244,15 +297,6 @@ class Graph:
             if new_travel_time <= 0:
                 new_travel_time = 1
             self.graph[source]["neighbors"][destination] = new_travel_time
-
-    def get_path_cost(self, path):
-        cost = 0
-        for i in range(len(path) - 1):
-            if self.edge_exists(path[i], path[i + 1]):
-                cost += self.get_edge_time(path[i], path[i + 1])
-            else:
-                return float("inf")
-        return cost
 
     def display_graph(self):
         for node in self.graph:
@@ -285,18 +329,6 @@ class Graph:
 
             print("-" * 50)
             print("-" * 50)
-
-    def evaporate(self):
-        for node in self.graph:
-            for neighbor in self.graph[node]["pheromones"]:
-                self.graph[node]["pheromones"][neighbor] = (1 - self.evap) * self.graph[
-                    node
-                ]["pheromones"][neighbor]
-
-    def add_phero(self, source, destination):
-        self.graph[source]["pheromones"][destination] += (
-            1.0 / self.graph[source]["neighbors"][destination]
-        )
 
     def update_graph(self, max_delta_time=2, update_probability=0.7):
         """
@@ -371,34 +403,18 @@ class Graph:
         self.c2 = c2
         self.gamma = gamma
 
-    def update_pheromones(self, source, destination):
-        if self.edge_exists(source, destination):
-            self.graph[source]["pheromones"][destination] += 1
-
-    # Getting the pheromones vlaues of the edges from which node is the source
-    def get_pheromones(self, node):
-        if not self.node_exists(id):
-            return []
-        pheromones = []
-        for _, edge in self.graph[id].edges.items():
-            pheromones.append(edge.pheromone)
-        return pheromones
-
-    @property
     def get_alpha(self):
         return self.alpha
 
-    @property
     def get_beta(self):
         return self.beta
 
-    @property
     def get_evaporation(self):
-        return self.evap
+        return self.evaporation_rate
 
     def __str__(self) -> str:
         display = []
-        for node_id, node in G.graph.items():
+        for node_id, node in self.graph.items():
             display.append("---")
             display.append(f"Node {node.id}")
             display.append(f"Visited: {node.visited}")
@@ -407,7 +423,7 @@ class Graph:
             display.append("Edges:")
             for edge_id, edge in node.edges.items():
                 display.append(
-                    f"{node_id} -> {edge_id}, Travel Time: {edge.travel_time}, Pheromones: {edge.phero}, Traffic Status: {edge.traffic_stat}"
+                    f"{node_id} -> {edge_id}, Travel Time: {edge.travel_time}, Pheromones: {edge.pheromone}, Traffic Status: {edge.traffic_stat}"
                 )
         return "\n".join(display)
 
