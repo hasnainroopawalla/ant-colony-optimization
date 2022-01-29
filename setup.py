@@ -7,7 +7,7 @@ with open(os.path.join(repository_dir, "README.md")) as fh:
     long_description = fh.read()
 
 setup(
-    name="aco",
+    name="aco_routing",
     version="0.1",
     packages=find_packages(exclude="tests"),
     description="Graph Routing using traditional Ant Colony Optimization (ACO) and the AntNet algorithm.",

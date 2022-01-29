@@ -268,6 +268,14 @@ class Graph:
         for i in range(len(path) - 1):
             self.deposit_phermones_on_edge(path[i], path[i + 1], 1 / path_cost)
 
+    def normalize_graph_for_dijkstra(self):
+        dijkstra_graph = {}
+        for node in self.get_all_nodes():
+            dijkstra_graph[node] = {}
+            for edge in self.graph[node].edges:
+                dijkstra_graph[node][edge] = self.graph[node].edges[edge].travel_time
+        return dijkstra_graph
+
     def delete_node(self, node):
         if self.node_exists(node):
             for n in self.graph:

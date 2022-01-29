@@ -1,9 +1,7 @@
-from graph import Graph
-from utils.ant import Ant
-from utils.dijkstra import Dijkstra
-from utils.plot import PerfomancePlot
-from utils.antnet import runAntNet
-from utils.ant import runACO
+from aco_routing.utils.graph import Graph
+from aco_routing.utils.dijkstra import Dijkstra
+from aco_routing.utils.plot import PerfomancePlot
+from aco_routing.aco import ACO
 
 G = Graph()
 
@@ -30,45 +28,18 @@ G.add_edge("C", "D", 10)
 G.add_edge("E", "D", 2)
 G.add_edge("G", "E", 2)
 
-Ant.graph = G
 
 source = "A"
 destination = "D"
 iterations = 20
 num_episodes = 100
 
-# ant_paths = []
-
-# ants = [
-#     Ant(G, source, destination),
-#     Ant(G, source, destination),
-#     Ant(G, source, destination),
-#     Ant(G, source, destination),
-#     Ant(G, source, destination)
-# ]
-
-# for ant in ants:  # this should happen in parallel processes
-#     for i in range(iterations):
-#         if ant.take_step():
-#             ant_paths.append(ant.get_path_taken())
-#             break
-
-# for path_taken in ant_paths:
-#     print("Path taken")
-#     print(path_taken)
-#     print()
-#     for path in path_taken:
-#         G.add_phero(path['start'], path['end'])
-
-"""
-Insert AntNet, ACO and Dijkstra function calls in this loop:
-"""
 P = PerfomancePlot()
-aco_path = runACO(G, source, destination)
-# dijkstra_path = Dijkstra(G).get_shortest_path(source=source, destination=destination)
+aco_path = ACO(G).find_shortest_path(source, destination)
+dijkstra_path = Dijkstra(G).find_shortest_path(source, destination)
 
 print(f"ACO: {aco_path}, Cost: {G.compute_path_travel_time(aco_path)}")
-# print(f"Dij: {dijkstra_path}")
+print(f"Dijkstra: {dijkstra_path}, Cost: {G.compute_path_travel_time(dijkstra_path)}")
 
 # antnet_dj_same_cost_counter = 0
 
@@ -76,7 +47,7 @@ print(f"ACO: {aco_path}, Cost: {G.compute_path_travel_time(aco_path)}")
 
 #     antnet_path = runAntNet(G, source, destination, 0.6, 0.3, 0.7) # Replace with -> antnet_path = antnet(G, source, destination)
 #     aco_path = runACO(G, source, destination)
-#     dijkstra_path = Dijkstra(G).get_shortest_path(source=source, destination=destination)
+#     dijkstra_path = Dijkstra(G).find_shortest_path(source=source, destination=destination)
 
 #     P.graphs.append(G)
 #     P.antnet_paths.append(antnet_path)

@@ -1,4 +1,4 @@
-from aco.graph import Graph
+from aco_routing.utils.graph import Graph
 
 G = Graph()
 

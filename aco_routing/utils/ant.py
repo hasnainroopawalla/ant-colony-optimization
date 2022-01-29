@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 import random
 from typing import Dict, List, Set
 
-from aco.graph import Edge, Graph
+from aco_routing.utils.graph import Edge, Graph
 
 
 @dataclass
@@ -33,7 +33,7 @@ class Ant:
     def _calculate_edges_total(unvisited_neighbors, alpha, beta):
         total = 0.0
         for neighbor, edge in unvisited_neighbors.items():
-            total += (edge.pheromone ** alpha) * ((1 / edge.travel_time) ** beta)
+            total += (edge.pheromones ** alpha) * ((1 / edge.travel_time) ** beta)
         return total
 
     @staticmethod
@@ -41,7 +41,7 @@ class Ant:
         probabilities = {}
         for neighbor, edge in unvisited_neighbors.items():
             probabilities[neighbor] = (
-                (edge.pheromone ** alpha) * ((1 / edge.travel_time) ** beta)
+                (edge.pheromones ** alpha) * ((1 / edge.travel_time) ** beta)
             ) / total
 
         sorted_probabilities = {
@@ -88,46 +88,3 @@ class Ant:
 
         self.path.append(next_node)
         self.current_node = next_node
-
-
-def runACO(G: Graph, source: str, destination: str):
-    max_iterations = 50
-    cycles = 2
-
-    for cycle in range(cycles):
-        ants: List[Ant] = [Ant(G, source, destination), Ant(G, source, destination)]
-        print("-----")
-        print(f"Cycle {cycle}")
-
-        # Forward ants
-        for idx, ant in enumerate(ants):
-            print(f"Ant {idx}")
-            for i in range(max_iterations):
-                if ant.reached_destination():
-                    print(ant.path)
-                    break
-                ant.take_step()
-
-        G.evaporate()
-        print(G)
-        print("--- BACKWARD ---")
-        # Backward ants
-        for idx, ant in enumerate(ants):
-            print(f"Ant {idx}")
-            print(ant.path)
-            G.deposit_pheromones_along_path(ant.path)
-
-    print()
-    print()
-    print(G)
-    path = [source]
-    current_node = source
-    visited_nodes = set()
-    while current_node != destination:
-        visited_nodes.add(current_node)
-        pheros = G.get_node_edges(current_node)
-        max_neighbor = max(pheros, key=lambda k: pheros[k].pheromone)
-        path.append(max_neighbor)
-        current_node = max_neighbor
-
-    return path
