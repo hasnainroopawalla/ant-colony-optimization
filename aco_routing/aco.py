@@ -8,7 +8,7 @@ from aco_routing.utils.ant import Ant
 class ACO:
     graph: Graph
 
-    def find_shortest_path(self, source: str, destination: str, cycles: int = 50):
+    def find_shortest_path(self, source: str, destination: str, cycles: int = 100):
         max_iterations = 50
 
         for cycle in range(cycles):
@@ -16,30 +16,21 @@ class ACO:
                 Ant(self.graph, source, destination),
                 Ant(self.graph, source, destination),
             ]
-            print("-----")
-            print(f"Cycle {cycle}")
 
             # Forward ants
             for idx, ant in enumerate(ants):
-                print(f"Ant {idx}")
                 for i in range(max_iterations):
                     if ant.reached_destination():
-                        print(ant.path)
+                        ant.is_fit = True
                         break
                     ant.take_step()
-
             self.graph.evaporate()
-            print(self.graph)
-            print("--- BACKWARD ---")
+
             # Backward ants
             for idx, ant in enumerate(ants):
-                print(f"Ant {idx}")
-                print(ant.path)
-                self.graph.deposit_pheromones_along_path(ant.path)
+                if ant.is_fit:
+                    self.graph.deposit_pheromones_along_path(ant.path)
 
-        print()
-        print()
-        print(self.graph)
         path = [source]
         current_node = source
         visited_nodes = set()
