@@ -8,6 +8,31 @@ from aco_routing.utils.ant import Ant
 class ACO:
     graph: Graph
 
+    def _forward_ants(self, ants: List[Ant], max_iterations: int) -> None:
+        """Deploys forward search ants in the graph.
+
+        Args:
+            ants (List[Ant]): A List of Ants.
+            max_iterations (int, optional): The maximum number of steps an ant is allowed is to take in order to reach the destination.
+                If it fails to find a path, it is tagged as unfit. Defaults to 50.
+        """
+        for idx, ant in enumerate(ants):
+            for i in range(max_iterations):
+                if ant.reached_destination():
+                    ant.is_fit = True
+                    break
+                ant.take_step()
+
+    def _backward_ants(self, ants: List[Ant]) -> None:
+        """Sends the ants (which are fit) backwards towards the source while they drop phermones on the path.
+
+        Args:
+            ants (List[Ant]): A List of Ants.
+        """
+        for idx, ant in enumerate(ants):
+            if ant.is_fit:
+                self.graph.deposit_pheromones_along_path(ant.path)
+
     def _deploy_search_ants(
         self, source: str, destination: str, cycles: int = 100, max_iterations: int = 50
     ) -> None:
@@ -26,19 +51,9 @@ class ACO:
                 Ant(self.graph, source, destination),
             ]
 
-            # Forward ants.
-            for idx, ant in enumerate(ants):
-                for i in range(max_iterations):
-                    if ant.reached_destination():
-                        ant.is_fit = True
-                        break
-                    ant.take_step()
+            self._forward_ants(ants, max_iterations)
             self.graph.evaporate()
-
-            # Backward ants.
-            for idx, ant in enumerate(ants):
-                if ant.is_fit:
-                    self.graph.deposit_pheromones_along_path(ant.path)
+            self._backward_ants(ants)
 
     def _deploy_solution_ant(self, source: str, destination: str) -> List[str]:
         """Deploys the final ant that greedily w.r.t. the phermones finds the shortest path from the source to the destination.
