@@ -62,8 +62,7 @@ class Graph:
     """
 
     graph: Dict[str, Node] = field(default_factory=dict)
-    alpha: float = 0.9
-    beta: float = 0.1
+
     evaporation_rate: float = 0.1
     w_max: int = 7
 
@@ -397,12 +396,6 @@ class Graph:
         self.c1 = c1
         self.c2 = c2
         self.gamma = gamma
-
-    def get_alpha(self):
-        return self.alpha
-
-    def get_beta(self):
-        return self.beta
 
     def get_evaporation(self):
         return self.evaporation_rate

@@ -13,6 +13,8 @@ class Ant:
         graph: (Graph): The Graph object.
         source: (str): The source node of the ant.
         destination: (str): The destination node of the ant.
+        alpha (float): The amount of importance given to the pheromone by the ant. Defaults to 0.9.
+        beta (float): The amount of importance given to the travel time value by the ant. Defaults to 0.1.
         visited_nodes: (Set): A set of nodes that have been visited by the ant.
         path: (List[str]) = A List of node IDs of the path taken by the ant so far.
         is_fit: (bool) = A flag which indicates if the ant has reached the destination (fit) or not (unfit). Defaults to False.
@@ -21,6 +23,8 @@ class Ant:
     graph: Graph
     source: str
     destination: str
+    alpha: float = 0.9
+    beta: float = 0.1
     visited_nodes: Set = field(default_factory=set)
     path: List[str] = field(default_factory=list)
     is_fit: bool = False
@@ -63,8 +67,8 @@ class Ant:
 
         Args:
             unvisited_neighbors (Dict[str, Edge]): A set of unvisited neighbors of the current node.
-            alpha (float): [description]: The alpha value initialized in the Graph.
-            beta (float): [description]: The beta value initialized in the Graph.
+            alpha (float): [description]: The alpha value.
+            beta (float): [description]: The beta value.
 
         Returns:
             float: The summation of all the outgoing edges (to unvisited nodes) from the current node.
@@ -82,8 +86,8 @@ class Ant:
 
         Args:
             unvisited_neighbors (Dict[str, Edge]): A set of unvisited neighbors of the current node.
-            alpha (float): [description]: The alpha value initialized in the Graph.
-            beta (float): [description]: The beta value initialized in the Graph.
+            alpha (float): [description]: The alpha value.
+            beta (float): [description]: The beta value.
             total (float): [description]: The summation of all the outgoing edges (to unvisited nodes) from the current node.
 
         Returns:
@@ -139,8 +143,8 @@ class Ant:
 
         Args:
             unvisited_neighbors (Dict[str, Edge]): A set of unvisited neighbors of the current node.
-            alpha (float): [description]: The alpha value initialized in the Graph.
-            beta (float): [description]: The beta value initialized in the Graph.
+            alpha (float): [description]: The alpha value.
+            beta (float): [description]: The beta value.
 
         Returns:
             str: The ID of the next node to be visited by the ant.
@@ -169,9 +173,7 @@ class Ant:
         unvisited_neighbors = self._get_unvisited_neighbors(all_neighbors)
 
         # Pick the next node based on the Roulette Wheel selection technique.
-        next_node = self._pick_next_node(
-            unvisited_neighbors, self.graph.alpha, self.graph.beta
-        )
+        next_node = self._pick_next_node(unvisited_neighbors, self.alpha, self.beta)
 
         self.path.append(next_node)
         self.current_node = next_node

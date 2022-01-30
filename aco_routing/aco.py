@@ -65,16 +65,10 @@ class ACO:
         Returns:
             List[str]: The shortest path found by the ants (A list of node IDs).
         """
-        path = [source]
-        current_node = source
-        visited_nodes = set()
-        while current_node != destination:
-            visited_nodes.add(current_node)
-            pheros = self.graph.get_node_edges(current_node)
-            max_neighbor = max(pheros, key=lambda k: pheros[k].pheromones)
-            path.append(max_neighbor)
-            current_node = max_neighbor
-        return path
+        ant = Ant(self.graph, source, destination, alpha=0.99, beta=0.01)
+        while not ant.reached_destination():
+            ant.take_step()
+        return ant.path
 
     def find_shortest_path(self, source: str, destination: str) -> List[str]:
         """Finds the shortest path from the source to the destination in the graph using the traditional Ant Colony Optimization technique.
