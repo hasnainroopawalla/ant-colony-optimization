@@ -1,6 +1,5 @@
 from dataclasses import dataclass, field
 import random
-import math
 from typing import Dict, List, Optional, Tuple
 
 
@@ -28,43 +27,8 @@ class Node:
 
 @dataclass
 class Graph:
-
-    """
-    graph:-
-    {
-        'A':{
-            'visited': False,
-            'neighbors':{
-                'B': 3,
-                'C': 9
-            },
-            'pheros': {
-                'B': 5
-            },
-            'routing_table': {
-                'B': 0.2,
-                'C': 0.1
-            },
-            'traffic_stat': {
-                'B': {
-                    'mean': 0.4,
-                    'std': 0.2,
-                    'W': [3, 4, 5]
-                },
-                'C': {
-                    'mean': 0.4,
-                    'std': 0.2,
-                    'W': [3, 4, 5]
-                }
-            }
-        }
-    }
-    """
-
     graph: Dict[str, Node] = field(default_factory=dict)
-
     evaporation_rate: float = 0.1
-    w_max: int = 7
 
     def node_exists(self, id: str) -> bool:
         """Checks if the node exists in the graph.
@@ -140,6 +104,14 @@ class Graph:
         return edges
 
     def get_node_edges(self, id: str) -> Dict[str, Edge]:
+        """Returns all the edges of a node.
+
+        Args:
+            id (str): The ID of the node.
+
+        Returns:
+            Dict[str, Edge]: The outgoing edges of the node.
+        """
         return self.graph[id].edges
 
     def get_node(self, id: str) -> Optional[Node]:
@@ -166,10 +138,7 @@ class Graph:
         """
         if not self.node_exists(id):
             return []
-        neighbors = []
-        for neighbor in self.graph[id].edges:
-            neighbors.append(neighbor)
-        return neighbors
+        return [neighbor for neighbor in self.graph[id].edges]
 
     def get_travel_times(self, id: str) -> List[float]:
         """Returns a List of travel times of all the edges of the Node.
@@ -213,11 +182,11 @@ class Graph:
         Returns:
             float: The travel time of that edge.
         """
-        if not self.node_exists(source):
-            return float("inf")
-        if not self.node_exists(destination):
-            return float("inf")
-        if not destination in self.graph[source].edges:
+        if (
+            not self.node_exists(source)
+            or not self.node_exists(destination)
+            or not destination in self.graph[source].edges
+        ):
             return float("inf")
         return self.graph[source].edges[destination].travel_time
 
@@ -267,8 +236,13 @@ class Graph:
         for i in range(len(path) - 1):
             self.deposit_phermones_on_edge(path[i], path[i + 1], 1 / path_cost)
 
-    def normalize_graph_for_dijkstra(self):
-        dijkstra_graph = {}
+    def normalize_graph_for_dijkstra(self) -> Dict[str, Dict[str, float]]:
+        """Normalizes the graph for the Dijkstra's algorithm implementation.
+
+        Returns:
+            Dict[str, Dict[str, float]]: A simple, dictionary-structured graph with only the travel times of the edges.
+        """
+        dijkstra_graph: Dict[str, Dict[str, float]] = {}
         for node in self.get_all_nodes():
             dijkstra_graph[node] = {}
             for edge in self.graph[node].edges:
@@ -292,38 +266,6 @@ class Graph:
                 new_travel_time = 1
             self.graph[source]["neighbors"][destination] = new_travel_time
 
-    def display_graph(self):
-        for node in self.graph:
-            print("--> NODE {} <--".format(node))
-            for neighbor in self.graph[node]["neighbors"]:
-                cost = self.graph[node]["neighbors"][neighbor]
-                pheros = self.graph[node]["pheromones"][neighbor]
-                print(
-                    "{} -> {} Cost: {}, Pheros: {}".format(node, neighbor, cost, pheros)
-                )
-
-            print("Traffic Statistics to reach Destination")
-            if "traffic_stat" in self.graph[node]:
-                for dest in self.graph[node]["traffic_stat"]:
-                    W = self.graph[node]["traffic_stat"][dest]["W"]
-                    mean = self.graph[node]["traffic_stat"][dest]["mean"]
-                    var = self.graph[node]["traffic_stat"][dest]["var"]
-                    print("|- W = {}".format(W))
-                    print("|- Mean = {}".format(mean))
-                    print("|- Variance = {}".format(var))
-                    print()
-
-            print("Routing Table Information")
-            for dest in self.graph[node]["routing_table"]:
-                print(
-                    " |- Prob. to reach {} = {}".format(
-                        dest, self.graph[node]["routing_table"][dest]
-                    )
-                )
-
-            print("-" * 50)
-            print("-" * 50)
-
     def update_graph(self, max_delta_time=2, update_probability=0.7):
         """
             max_delta_time: maximum allowed change in travel time of an edge (in positive or negative direction)
@@ -335,70 +277,6 @@ class Graph:
                     [i for i in range(-max_delta_time, max_delta_time + 1, 1) if i != 0]
                 )  # Change the travel time by delta_time units
                 self.update_travel_time(edge[0], edge[1], edge[2] + delta_time)
-
-    # updates the traffic_stat datastructure of the node
-    def update_traffic_stat(self, node, destination, neighbor, t):
-        # Update traffic status
-        if destination in self.graph[node]["traffic_stat"]:
-            self.graph[node]["traffic_stat"][destination]["W"].append(t)
-            self.graph[node]["traffic_stat"][destination]["mean"] = sum(
-                self.graph[node]["traffic_stat"][destination]["W"]
-            ) / len(self.graph[node]["traffic_stat"][destination]["W"])
-            self.graph[node]["traffic_stat"][destination]["var"] = (
-                (t - self.graph[node]["traffic_stat"][destination]["mean"]) ** 2
-            ) / len(self.graph[node]["traffic_stat"][destination]["W"])
-        else:
-            self.graph[node]["traffic_stat"][destination] = {
-                "W": [t],
-                "mean": t,
-                "var": 0,
-            }
-
-        if len(self.graph[node]["traffic_stat"][destination]["W"]) > self.w_max:
-            self.graph[node]["traffic_stat"][destination]["W"].pop(0)
-
-        # Update routing table
-        t_best = min(self.graph[node]["traffic_stat"][destination]["W"])
-        first_term = self.c1 * (t_best / t)
-
-        try:
-            conf = math.sqrt(1 - self.gamma)
-            W_max = len(self.graph[node]["traffic_stat"][destination]["W"])
-            t_sup = self.graph[node]["traffic_stat"][destination]["mean"] + (
-                self.graph[node]["traffic_stat"][destination]["var"]
-                / (conf * math.sqrt(W_max))
-            )
-            second_term = self.c2 * (
-                (t_sup - t_best) / ((t_sup - t_best) + (t - t_best))
-            )
-        except ZeroDivisionError as e:
-            second_term = 0
-
-        r = first_term + second_term
-
-        # print("r for {} with neighbor {} -> {}".format(node, neighbor, r))
-        # print(first_term, second_term)
-
-        self.graph[node]["routing_table"][neighbor] += r * (
-            1 - self.graph[node]["routing_table"][neighbor]
-        )
-        for n in self.graph[node]["routing_table"]:
-            if n == neighbor:
-                continue
-            self.graph[node]["routing_table"][n] -= (
-                r * self.graph[node]["routing_table"][n]
-            )
-
-    def set_window_size(self, w_max):
-        self.w_max = w_max
-
-    def set_antnet_hyperparams(self, c1, c2, gamma):
-        self.c1 = c1
-        self.c2 = c2
-        self.gamma = gamma
-
-    def get_evaporation(self):
-        return self.evaporation_rate
 
     def __str__(self) -> str:
         display = []

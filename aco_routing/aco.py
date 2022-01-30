@@ -65,6 +65,7 @@ class ACO:
         Returns:
             List[str]: The shortest path found by the ants (A list of node IDs).
         """
+        # Spawn an ant which favors pheromone values over edge costs.
         ant = Ant(self.graph, source, destination, alpha=0.99, beta=0.01)
         while not ant.reached_destination():
             ant.take_step()
