@@ -23,8 +23,8 @@ class Ant:
     graph: Graph
     source: str
     destination: str
-    alpha: float = 0.9
-    beta: float = 0.1
+    alpha: float = 0.7
+    beta: float = 0.3
     visited_nodes: Set = field(default_factory=set)
     path: List[str] = field(default_factory=list)
     is_fit: bool = False

@@ -2,6 +2,8 @@ from dataclasses import dataclass, field
 import random
 from typing import Dict, List, Optional, Tuple
 
+from numpy import source
+
 
 @dataclass
 class Edge:
@@ -85,23 +87,29 @@ class Graph:
         """
         return list(self.graph.keys())
 
-    def get_all_edges(self) -> List[Tuple[str, str, float]]:
+    def get_all_edges(self) -> List[Edge]:
         """Returns all the edges in the graph.
 
         Returns:
             List[Tuple[str, str, float]]: A List of Tuples -> (source, destination, travel_time)
         """
-        edges = []
+        edges: List[Edge] = []
         for source in self.graph:
             for destination in self.graph[source].edges:
-                edges.append(
-                    (
-                        source,
-                        destination,
-                        self.graph[source].edges[destination].travel_time,
-                    )
-                )
+                edges.append(self.get_edge(source, destination))
         return edges
+
+    def get_edge(self, source: str, destination: str) -> Edge:
+        """Returns the Edge if it exists in the graph.
+
+        Args:
+            source (str): The ID of the source node.
+            destination (str): The ID of the destination node.
+
+        Returns:
+            Edge: The Edge object.
+        """
+        return self.graph[source].edges[destination]
 
     def get_node_edges(self, id: str) -> Dict[str, Edge]:
         """Returns all the edges of a node.
@@ -115,7 +123,7 @@ class Graph:
         return self.graph[id].edges
 
     def get_node(self, id: str) -> Optional[Node]:
-        """Returns the Node if it is present in the graph.
+        """Returns the Node if it exists in the graph.
 
         Args:
             id (str): The ID of the Node.
@@ -208,33 +216,33 @@ class Graph:
         return cost
 
     def evaporate(self) -> None:
-        """Evaporates the phermone values of all the edges given the evaporation parameter (rho).
+        """Evaporates the pheromone values of all the edges given the evaporation parameter (rho).
         """
         for node_id, node in self.graph.items():
             for neighbor, edge in self.graph[node_id].edges.items():
                 edge.pheromones = (1 - self.evaporation_rate) * edge.pheromones
 
-    def deposit_phermones_on_edge(
-        self, source: str, destination: str, new_phermones: float
+    def deposit_pheromones_on_edge(
+        self, source: str, destination: str, new_pheromones: float
     ) -> None:
-        """Updates the phermones on an edge in the graph.
+        """Updates the pheromones on an edge in the graph.
 
         Args:
             source (str): The source node of the edge.
             destination (str): The destination node of the edge.
-            new_phermones (float): The amount of phermones to be added to the existing value on the edge.
+            new_pheromones (float): The amount of pheromones to be added to the existing value on the edge.
         """
-        self.graph[source].edges[destination].pheromones += new_phermones
+        self.graph[source].edges[destination].pheromones += new_pheromones
 
     def deposit_pheromones_along_path(self, path: List[str]) -> None:
-        """Updates the phermones along all the edges in the path.
+        """Updates the pheromones along all the edges in the path.
 
         Args:
             path (List[str]): The path followed by the ant.
         """
         path_cost = self.compute_path_travel_time(path)
         for i in range(len(path) - 1):
-            self.deposit_phermones_on_edge(path[i], path[i + 1], 1 / path_cost)
+            self.deposit_pheromones_on_edge(path[i], path[i + 1], 1 / path_cost)
 
     def normalize_graph_for_dijkstra(self) -> Dict[str, Dict[str, float]]:
         """Normalizes the graph for the Dijkstra's algorithm implementation.
@@ -260,23 +268,33 @@ class Graph:
         if self.edge_exists(source, destination):
             del self.graph[source]["neighbors"][destination]
 
-    def update_travel_time(self, source, destination, new_travel_time):
-        if self.edge_exists(source, destination):
-            if new_travel_time <= 0:
-                new_travel_time = 1
-            self.graph[source]["neighbors"][destination] = new_travel_time
+    def update_edge_travel_time(self, edge: Edge, new_travel_time: float) -> None:
+        """Updates the travel time of an edge in the graph.
 
-    def update_graph(self, max_delta_time=2, update_probability=0.7):
+        Args:
+            edge (Edge): The Edge object.
+            new_travel_time (float): The new travel time.
         """
-            max_delta_time: maximum allowed change in travel time of an edge (in positive or negative direction)
-            update_probability: probability that the travel time of an edge will change
+        if new_travel_time <= 0:
+            new_travel_time = 1
+        edge.travel_time = new_travel_time
+
+    def update_edges_travel_time(
+        self, max_delta_time: int = 2, update_probability: float = 0.7
+    ) -> None:
+        """Stochastically updates the travel time of the edges in the graph.
+
+        Args:
+            max_delta_time (int, optional): The maximum allowed change in travel time of an edge (in positive or negative direction). Defaults to 2.
+            update_probability (float, optional): The probability that the travel time of an edge will be updated. Defaults to 0.7.
         """
         for edge in self.get_all_edges():
-            if random.random() <= update_probability:  # update the edge
-                delta_time = random.choice(
-                    [i for i in range(-max_delta_time, max_delta_time + 1, 1) if i != 0]
-                )  # Change the travel time by delta_time units
-                self.update_travel_time(edge[0], edge[1], edge[2] + delta_time)
+            if random.random() > update_probability:
+                continue
+            delta_time = random.choice(
+                [i for i in range(-max_delta_time, max_delta_time + 1, 1) if i != 0]
+            )
+            self.update_edge_travel_time(edge, edge.travel_time + delta_time)
 
     def __str__(self) -> str:
         display = []

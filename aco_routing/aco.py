@@ -24,7 +24,7 @@ class ACO:
                 ant.take_step()
 
     def _backward_ants(self, ants: List[Ant]) -> None:
-        """Sends the ants (which are fit) backwards towards the source while they drop phermones on the path.
+        """Sends the ants (which are fit) backwards towards the source while they drop pheromones on the path.
 
         Args:
             ants (List[Ant]): A List of Ants.
@@ -49,6 +49,13 @@ class ACO:
             ants: List[Ant] = [
                 Ant(self.graph, source, destination),
                 Ant(self.graph, source, destination),
+                Ant(self.graph, source, destination),
+                Ant(self.graph, source, destination),
+                Ant(self.graph, source, destination),
+                Ant(self.graph, source, destination),
+                Ant(self.graph, source, destination),
+                Ant(self.graph, source, destination),
+                Ant(self.graph, source, destination),
             ]
 
             self._forward_ants(ants, max_iterations)
@@ -56,7 +63,7 @@ class ACO:
             self._backward_ants(ants)
 
     def _deploy_solution_ant(self, source: str, destination: str) -> List[str]:
-        """Deploys the final ant that greedily w.r.t. the phermones finds the shortest path from the source to the destination.
+        """Deploys the final ant that greedily w.r.t. the pheromones finds the shortest path from the source to the destination.
 
         Args:
             source (str): The source node in the graph.

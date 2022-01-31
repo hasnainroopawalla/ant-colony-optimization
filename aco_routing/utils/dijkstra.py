@@ -21,15 +21,15 @@ class Dijkstra:
         parents = {}  # predecessors
         while unvisited:
             min_vertex = min(unvisited, key=unvisited.get)  # get smallest distance
-            for neighbour, _ in self.dijkstra_graph.get(min_vertex, {}).items():
-                if neighbour in visited:
+            for neighbor, _ in self.dijkstra_graph.get(min_vertex, {}).items():
+                if neighbor in visited:
                     continue
                 new_distance = unvisited[min_vertex] + self.dijkstra_graph[
                     min_vertex
-                ].get(neighbour, float("inf"))
-                if new_distance < unvisited[neighbour]:
-                    unvisited[neighbour] = new_distance
-                    parents[neighbour] = min_vertex
+                ].get(neighbor, float("inf"))
+                if new_distance < unvisited[neighbor]:
+                    unvisited[neighbor] = new_distance
+                    parents[neighbor] = min_vertex
             visited[min_vertex] = unvisited[min_vertex]
             unvisited.pop(min_vertex)
             if min_vertex == end:
