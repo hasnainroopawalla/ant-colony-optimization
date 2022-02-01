@@ -1,6 +1,7 @@
+from matplotlib.pyplot import plot
 from aco_routing.utils.graph import Graph
 from aco_routing.utils.dijkstra import Dijkstra
-from aco_routing.utils.eval import Evaluator, Episode
+from aco_routing.utils.eval import Evaluator
 from aco_routing.aco import ACO
 
 G = Graph()
@@ -25,22 +26,8 @@ G.add_edge("G", "E", 2)
 
 source = "A"
 destination = "D"
-num_episodes = 100
 
-Eval = Evaluator()
+aco_path = ACO(G).find_shortest_path(source, destination)
+dijkstra_path = Dijkstra(G).find_shortest_path(source, destination)
 
-for episode in range(1, num_episodes + 1):
-    aco_path = ACO(G).find_shortest_path(source, destination)
-    dijkstra_path = Dijkstra(G).find_shortest_path(source, destination)
-
-    aco_cost = G.compute_path_travel_time(aco_path)
-    dijkstra_cost = G.compute_path_travel_time(dijkstra_path)
-
-    Eval.episodes.append(
-        Episode(episode, G, aco_path, dijkstra_path, aco_cost, dijkstra_cost)
-    )
-
-    G.update_edges_travel_time(max_delta_time=1, update_probability=0.7)
-
-
-Eval.show_plot()
+Evaluator(G).evaluate(source, destination, num_episodes=100, plot=True)
