@@ -5,24 +5,31 @@ from typing import Dict, List, Optional
 
 @dataclass
 class Edge:
+    """An edge of the graph.
+
+    Args:
+        travel_time (float): The time it takes to travel the edge. A high value indicates more traffic.
+        pheromones: (float): The amount of pheromones deposited by the ants on the edge. Defaults to 1.0.
+    """
+
     travel_time: float
     pheromones: float = 1.0
-    traffic_stat: Dict[str, float] = field(default_factory=dict)
 
 
 @dataclass
 class Node:
-    id: str
-    visited: bool = False
-    routing_table: Dict = field(default_factory=dict)
-    edges: Dict[str, Edge] = field(default_factory=dict)
+    """A node in the graph.
 
-    def __post_init__(self) -> None:
-        self.routing_table = {self.id: 0.0}
+    Args:
+        id: (str):
+        edges (Dict[str, Edge]): Stores all the outgoing edges from this node.
+    """
+
+    id: str
+    edges: Dict[str, Edge] = field(default_factory=dict)
 
     def add_edge(self, destination: str, travel_time: float):
         self.edges[destination] = Edge(travel_time)
-        self.routing_table[destination] = 0.0
 
 
 @dataclass
@@ -162,22 +169,6 @@ class Graph:
             travel_times.append(edge.travel_time)
         return travel_times
 
-    def mark_node_as_visited(self, id: str) -> None:
-        """Marks a Node as visited in the graph.
-
-        Args:
-            id (str): The ID of the Node.
-        """
-        self.graph[id].visited = True
-
-    def mark_node_as_unvisited(self, id: str) -> None:
-        """Marks a Node as unvisited in the graph.
-
-        Args:
-            id (str): The ID of the Node.
-        """
-        self.graph[id].visited = False
-
     def get_edge_travel_time(self, source: str, destination: str) -> float:
         """Returns the travel time of the specified edge if it exists.
 
@@ -255,17 +246,6 @@ class Graph:
                 dijkstra_graph[node][edge] = self.graph[node].edges[edge].travel_time
         return dijkstra_graph
 
-    def delete_node(self, node):
-        if self.node_exists(node):
-            for n in self.graph:
-                if node in self.graph[n]["neighbors"]:
-                    del self.graph[n]["neighbors"][node]
-            del self.graph[node]
-
-    def delete_edge(self, source, destination):
-        if self.edge_exists(source, destination):
-            del self.graph[source]["neighbors"][destination]
-
     def update_edge_travel_time(self, edge: Edge, new_travel_time: float) -> None:
         """Updates the travel time of an edge in the graph.
 
@@ -295,16 +275,19 @@ class Graph:
             self.update_edge_travel_time(edge, edge.travel_time + delta_time)
 
     def __str__(self) -> str:
+        """Displays the graph.
+
+        Returns:
+            str: The string representation of the graph.
+        """
         display = []
         for node_id, node in self.graph.items():
             display.append("---")
             display.append(f"Node {node.id}")
-            display.append(f"Visited: {node.visited}")
-            display.append(f"Routing Table: {node.routing_table}")
             display.append("")
             display.append("Edges:")
             for edge_id, edge in node.edges.items():
                 display.append(
-                    f"{node_id} -> {edge_id}, Travel Time: {edge.travel_time}, Pheromones: {edge.pheromones}, Traffic Status: {edge.traffic_stat}"
+                    f"{node_id} -> {edge_id}, Travel Time: {edge.travel_time}, Pheromones: {edge.pheromones}"
                 )
         return "\n".join(display)

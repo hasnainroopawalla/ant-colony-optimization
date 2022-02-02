@@ -18,8 +18,10 @@ class Episode:
 
 
 @dataclass
-class Evaluator:
-    """This class can be used to evaluate the performance of the algorithm (ACO/AntNet) with a baseline Dijkstra's Algorithm.
+class Simulator:
+    """This class can be used to simulate and evaluate the performance of the candidate algorithm (ACO) with a baseline Dijkstra's Algorithm.
+    It simulates a real-life city, where the traffic conditions change every episode in a conditionally stochastic manner.
+    The ants continue to find the shortest path even after the traffic conditions change.
 
     Args:
         graph (Graph): The Graph object.
@@ -29,7 +31,9 @@ class Evaluator:
     graph: Graph
     episodes: List[Episode] = field(default_factory=list)
 
-    def show_evaluation_plot(self):
+    def show_evaluation_plot(self) -> None:
+        """Displays a plot to compare the path costs of the candidate algorithm with the baseline Dijkstra's algorithm across all episodes.
+        """
         aco_costs, dijkstra_costs = [], []
         for episode in self.episodes:
             aco_costs.append(episode.aco_cost)
@@ -38,18 +42,33 @@ class Evaluator:
         plt.scatter(dijkstra_costs, aco_costs, s=4)
         plt.xlabel("Dijkstra Cost")
         plt.ylabel("ACO Cost")
-        plt.title("Dijkstra Cost vs ACO Cost")
+        plt.title(f"Dijkstra Cost vs ACO Cost ({len(self.episodes)} episodes)")
         plt.show()
 
     def compute_mse(self) -> float:
+        """Computes the Mean Squared Error between the baseline and candidate algorithm path costs. A low value indicates very good performance.
+
+        Returns:
+            float: The Mean Squared Error value.
+        """
         summation = 0.0
         for episode in self.episodes:
             summation += (episode.dijkstra_cost - episode.aco_cost) ** 2
-        return summation / len(self.episodes)
+        mse = summation / len(self.episodes)
+        print(f"Mean Squared Error: {mse}")
+        return mse
 
     def evaluate(
         self, source: str, destination: str, num_episodes: int, plot: bool = True
     ) -> None:
+        """Evaluates the candidate algorithm across several episodes.
+
+        Args:
+            source (str): The source node.
+            destination (str): The destination node.
+            num_episodes (int): The number of episodes used for evaluation.
+            plot (bool, optional): A flag which determines if the plot should be displayed. Defaults to True.
+        """
         aco = ACO(self.graph)
         dijkstra = Dijkstra(self.graph)
         for episode in range(1, num_episodes + 1):
@@ -74,6 +93,6 @@ class Evaluator:
                 max_delta_time=1, update_probability=0.7
             )
 
-        print(f"Mean Squared Error: {self.compute_mse()}")
+        self.compute_mse()
         if plot:
             self.show_evaluation_plot()

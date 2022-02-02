@@ -10,14 +10,14 @@ class Ant:
     """A class for an Ant that traverses the graph.
 
     Args:
-        graph: (Graph): The Graph object.
-        source: (str): The source node of the ant.
-        destination: (str): The destination node of the ant.
+        graph (Graph): The Graph object.
+        source (str): The source node of the ant.
+        destination (str): The destination node of the ant.
         alpha (float): The amount of importance given to the pheromone by the ant. Defaults to 0.9.
         beta (float): The amount of importance given to the travel time value by the ant. Defaults to 0.1.
-        visited_nodes: (Set): A set of nodes that have been visited by the ant.
-        path: (List[str]) = A List of node IDs of the path taken by the ant so far.
-        is_fit: (bool) = A flag which indicates if the ant has reached the destination (fit) or not (unfit). Defaults to False.
+        visited_nodes (Set): A set of nodes that have been visited by the ant.
+        path (List[str]): A List of node IDs of the path taken by the ant so far.
+        is_fit (bool): A flag which indicates if the ant has reached the destination (fit) or not (unfit). Defaults to False.
     """
 
     graph: Graph
