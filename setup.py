@@ -10,7 +10,7 @@ setup(
     name="aco_routing",
     version="0.1",
     packages=find_packages(exclude="tests"),
-    description="Graph Routing (finding the shortest path) using Ant Colony Optimization (ACO)",
+    description="A Python package to find the shortest path in a graph using Ant Colony Optimization (ACO).",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/hasnainroopawalla/ant-colony-optimization",

@@ -1,6 +1,6 @@
 from aco_routing.utils.graph import Graph
-from aco_routing.utils.dijkstra import Dijkstra
-from aco_routing.utils.eval import Simulator
+from aco_routing.dijkstra import Dijkstra
+from aco_routing.utils.simulator import Simulator
 from aco_routing.aco import ACO
 
 G = Graph()

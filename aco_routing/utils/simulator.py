@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 from aco_routing.utils.graph import Graph
 from aco_routing.aco import ACO
-from aco_routing.utils.dijkstra import Dijkstra
+from aco_routing.dijkstra import Dijkstra
 
 
 @dataclass
