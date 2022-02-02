@@ -84,30 +84,37 @@ Simulator(graph).simulate(source, destination, num_episodes=100, plot=True)
 
 ## 📦 Contents <a name = "contents"></a>
 
-### Graph (`aco_routing.utils.graph.Graph`)
+### Graph
+`aco_routing.utils.graph.Graph`
 - A Directed Graph class which consists of `Nodes` and `Edges`.
 - The `evaporation_rate` is initialized here.
 
-### Node (`aco_routing.utils.graph.Node`)
+### Node
+`aco_routing.utils.graph.Node`
 - A `Node` class which represents a node in the Graph and consists of various outgoing edges.
 
-### Edge (`aco_routing.utils.graph.Edge`)
+### Edge
+`aco_routing.utils.graph.Edge`
 - An `Edge` class which represents a link between 2 nodes in the Graph.
 - Each `Edge` has 2 parameters:
     - `travel_time`: The amount of time it takes to traverse the edge. A high value indicates more traffic.
     - `pheromones`: A heuristic parameter i.e., the pheromone values deposited by the ants.
 
-### Dijkstra (`aco_routing.dijkstra.Dijkstra`)
+### Dijkstra
+`aco_routing.dijkstra.Dijkstra`
 - The baseline algorithm to compare the results of the candidate algorithm with.
 - The Dijkstra's algorithm ([source](https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm)) returns the shortest path between any 2 nodes in a graph.
 
-### Ant (`aco_routing.utils.ant.Ant`)
+### Ant
+`aco_routing.utils.ant.Ant`
 - The `Ant` class representing an ant that traverses the graph.
 
-### ACO (`aco_routing.aco.ACO`)
+### ACO
+`aco_routing.aco.ACO`
 - The traditional Ant Colony Optimization algorithm that spawns various ants at random nodes and tries to find the shortest path between the specified source and destination.
 
-### Simulator (`aco_routing.utils.simulator.Simulator`)
+### Simulator
+`aco_routing.utils.simulator.Simulator`
 - The simulator class is used to simulate and evaluate the performance of the candidate algorithm (ACO) with a baseline Dijkstra's Algorithm.
 - It simulates a real-life city, where the traffic conditions change every episode in a conditionally stochastic manner.
 - The ants continue to find the shortest path even after the traffic conditions change.
