@@ -3,8 +3,8 @@
 
 [![Develop](https://github.com/hasnainroopawalla/Ant-Colony-Optimization/actions/workflows/develop.yml/badge.svg)](https://github.com/hasnainroopawalla/Ant-Colony-Optimization/actions/workflows/develop.yml)
 [![Deploy](https://github.com/hasnainroopawalla/Ant-Colony-Optimization/actions/workflows/deploy.yml/badge.svg)](https://github.com/hasnainroopawalla/Ant-Colony-Optimization/actions/workflows/deploy.yml)
-[![PyPi version](https://img.shields.io/pypi/v/showml.svg)](https://pypi.python.org/pypi/showml/)
-[![Python versions](https://img.shields.io/pypi/pyversions/showml.svg?style=plastic)](https://img.shields.io/pypi/pyversions/showml.svg?style=plastic)
+[![PyPi version](https://img.shields.io/pypi/v/aco_routing.svg)](https://pypi.python.org/pypi/aco_routing/)
+[![Python versions](https://img.shields.io/pypi/pyversions/aco_routing.svg?style=plastic)](https://img.shields.io/pypi/pyversions/aco_routing.svg?style=plastic)
 ![Status](https://img.shields.io/badge/status-stable-green.svg)
 
 
