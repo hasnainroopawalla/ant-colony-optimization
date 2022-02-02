@@ -1,8 +1,8 @@
 <h1 align="center">Ant Colony Optimization</h1>
 
 
-[![Develop](https://github.com/hasnainroopawalla/ShowML/actions/workflows/develop.yml/badge.svg)](https://github.com/hasnainroopawalla/ShowML/actions/workflows/develop.yml)
-[![Deploy](https://github.com/hasnainroopawalla/ShowML/actions/workflows/deploy.yml/badge.svg)](https://github.com/hasnainroopawalla/ShowML/actions/workflows/deploy.yml)
+[![Develop](https://github.com/hasnainroopawalla/Ant-Colony-Optimization/actions/workflows/develop.yml/badge.svg)](https://github.com/hasnainroopawalla/Ant-Colony-Optimization/actions/workflows/develop.yml)
+[![Deploy](https://github.com/hasnainroopawalla/Ant-Colony-Optimization/actions/workflows/deploy.yml/badge.svg)](https://github.com/hasnainroopawalla/Ant-Colony-Optimization/actions/workflows/deploy.yml)
 [![PyPi version](https://img.shields.io/pypi/v/showml.svg)](https://pypi.python.org/pypi/showml/)
 [![Python versions](https://img.shields.io/pypi/pyversions/showml.svg?style=plastic)](https://img.shields.io/pypi/pyversions/showml.svg?style=plastic)
 ![Status](https://img.shields.io/badge/status-stable-green.svg)

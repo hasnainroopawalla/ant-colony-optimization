@@ -116,7 +116,7 @@ class Ant:
 
     @staticmethod
     def _choose_neighbor_using_roulette_wheel(
-        sorted_probabilities: Dict[str, Edge]
+        sorted_probabilities: Dict[str, float]
     ) -> str:
         """Chooses the next node to be visited using the Roulette Wheel selection technique.
 
@@ -127,7 +127,7 @@ class Ant:
             str: The ID of the next node to be visited by the ant.
         """
         pick = random.uniform(0, sum(sorted_probabilities.values()))
-        current = 0
+        current = 0.0
         next_node = ""
         for key, value in sorted_probabilities.items():
             current += value
