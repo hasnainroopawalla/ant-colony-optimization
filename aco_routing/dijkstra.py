@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import List, Tuple
 
 from aco_routing.utils.graph import Graph
 
@@ -34,7 +35,7 @@ class Dijkstra:
             unvisited.pop(min_vertex)
             if min_vertex == end:
                 break
-        return parents, visited
+        return parents
 
     def generate_path(self, parents, start, end):
         path = [end]
@@ -47,11 +48,7 @@ class Dijkstra:
                 break
         return path
 
-    def find_shortest_path(self, source, destination):
-        if (
-            source not in self.vertices or destination not in self.vertices
-        ):  # Vertex does not exist
-            return float("inf"), []
-        p, cost = self.find_route(source, destination)
+    def find_shortest_path(self, source, destination) -> Tuple[List[str], float]:
+        p = self.find_route(source, destination)
         path = self.generate_path(p, source, destination)
-        return path  # cost[destination]
+        return path, self.graph.compute_path_travel_time(path)

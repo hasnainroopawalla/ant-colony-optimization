@@ -35,10 +35,10 @@ class Simulator:
     def show_simulation_plot(self) -> None:
         """Displays a plot to compare the path costs of the candidate algorithm with the baseline Dijkstra's algorithm across all episodes.
         """
-        aco_costs, dijkstra_costs = [], []
+        dijkstra_costs, aco_costs = [], []
         for episode in self.episodes:
-            aco_costs.append(episode.aco_cost)
             dijkstra_costs.append(episode.dijkstra_cost)
+            aco_costs.append(episode.aco_cost)
 
         plt.scatter(dijkstra_costs, aco_costs, s=4)
         plt.xlabel("Dijkstra Cost")
@@ -47,7 +47,8 @@ class Simulator:
         plt.show()
 
     def compute_mse(self) -> float:
-        """Computes the Mean Squared Error between the baseline and candidate algorithm path costs. A low value indicates very good performance.
+        """Computes the Mean Squared Error between the baseline and candidate algorithm path costs.
+        A low value indicates very good performance.
 
         Returns:
             float: The Mean Squared Error value.
@@ -72,14 +73,13 @@ class Simulator:
         """
         print("-" * 5)
         print(f"Simulating {num_episodes} episodes..")
-        aco = ACO(self.graph)
         dijkstra = Dijkstra(self.graph)
+        aco = ACO(self.graph)
         for episode in tqdm(range(1, num_episodes + 1)):
-            aco_path = aco.find_shortest_path(source, destination)
-            dijkstra_path = dijkstra.find_shortest_path(source, destination)
-
-            aco_cost = self.graph.compute_path_travel_time(aco_path)
-            dijkstra_cost = self.graph.compute_path_travel_time(dijkstra_path)
+            dijkstra_path, dijkstra_cost = dijkstra.find_shortest_path(
+                source, destination
+            )
+            aco_path, aco_cost = aco.find_shortest_path(source, destination)
 
             self.episodes.append(
                 Episode(

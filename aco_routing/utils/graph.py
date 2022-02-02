@@ -21,7 +21,7 @@ class Node:
     """A node in the graph.
 
     Args:
-        id: (str):
+        id (str): The unique ID of the node.
         edges (Dict[str, Edge]): Stores all the outgoing edges from this node.
     """
 
@@ -34,6 +34,13 @@ class Node:
 
 @dataclass
 class Graph:
+    """A Directed Graph made up of Nodes and Edges.
+
+    Args:
+        graph (Dict[str, Node]): The actual graph.
+        evaporation_rate (float): The evaporation rate of the pheromones. Defaults to 0.1
+    """
+
     graph: Dict[str, Node] = field(default_factory=dict)
     evaporation_rate: float = 0.1
 

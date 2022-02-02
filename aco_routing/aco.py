@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List
+from typing import List, Tuple
 from aco_routing.utils.graph import Graph
 from aco_routing.utils.ant import Ant
 
@@ -78,7 +78,9 @@ class ACO:
             ant.take_step()
         return ant.path
 
-    def find_shortest_path(self, source: str, destination: str) -> List[str]:
+    def find_shortest_path(
+        self, source: str, destination: str
+    ) -> Tuple[List[str], float]:
         """Finds the shortest path from the source to the destination in the graph using the traditional Ant Colony Optimization technique.
 
         Args:
@@ -87,7 +89,8 @@ class ACO:
 
         Returns:
             List[str]: The shortest path found by the ants (A list of node IDs).
+            float: The total travel time of the shortest path.
         """
         self._deploy_search_ants(source, destination)
         shortest_path = self._deploy_solution_ant(source, destination)
-        return shortest_path
+        return shortest_path, self.graph.compute_path_travel_time(shortest_path)
