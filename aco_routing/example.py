@@ -32,4 +32,4 @@ dijkstra_cost = G.compute_path_travel_time(dijkstra_path)
 print(f"ACO - path: {aco_path}, cost: {aco_cost}")
 print(f"Dijkstra - path: {dijkstra_path}, cost: {dijkstra_cost}")
 
-# Simulator(G).evaluate(source, destination, num_episodes=100, plot=True)
+Simulator(G).simulate(source, destination, num_episodes=100, plot=True)

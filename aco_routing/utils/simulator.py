@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
 from typing import List
 import matplotlib.pyplot as plt
+from tqdm import tqdm
 
 from aco_routing.utils.graph import Graph
 from aco_routing.aco import ACO
@@ -25,13 +26,13 @@ class Simulator:
 
     Args:
         graph (Graph): The Graph object.
-        episodes (List[Episode]): A List of all the episodes which were saved during the evaluation.
+        episodes (List[Episode]): A List of all the episodes which were saved during the simulation.
     """
 
     graph: Graph
     episodes: List[Episode] = field(default_factory=list)
 
-    def show_evaluation_plot(self) -> None:
+    def show_simulation_plot(self) -> None:
         """Displays a plot to compare the path costs of the candidate algorithm with the baseline Dijkstra's algorithm across all episodes.
         """
         aco_costs, dijkstra_costs = [], []
@@ -58,20 +59,22 @@ class Simulator:
         print(f"Mean Squared Error: {mse}")
         return mse
 
-    def evaluate(
+    def simulate(
         self, source: str, destination: str, num_episodes: int, plot: bool = True
     ) -> None:
-        """Evaluates the candidate algorithm across several episodes.
+        """Simulates and Evaluates the candidate algorithm across several episodes.
 
         Args:
             source (str): The source node.
             destination (str): The destination node.
-            num_episodes (int): The number of episodes used for evaluation.
+            num_episodes (int): The number of episodes used in the simulation.
             plot (bool, optional): A flag which determines if the plot should be displayed. Defaults to True.
         """
+        print("-" * 5)
+        print(f"Simulating {num_episodes} episodes..")
         aco = ACO(self.graph)
         dijkstra = Dijkstra(self.graph)
-        for episode in range(1, num_episodes + 1):
+        for episode in tqdm(range(1, num_episodes + 1)):
             aco_path = aco.find_shortest_path(source, destination)
             dijkstra_path = dijkstra.find_shortest_path(source, destination)
 
@@ -95,4 +98,4 @@ class Simulator:
 
         self.compute_mse()
         if plot:
-            self.show_evaluation_plot()
+            self.show_simulation_plot()
