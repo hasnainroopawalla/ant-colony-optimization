@@ -1,12 +1,13 @@
 from dataclasses import dataclass
-from typing import List, Tuple
+from typing import Dict, List, Tuple
 
 from aco_routing.utils.graph import Graph
 
 
 @dataclass
 class Dijkstra:
-    """Reference: https://stackoverflow.com/a/61078380
+    """The basline Dijkstra's Algorithm to find the shortest path between 2 nodes in the graph.
+    Reference: https://stackoverflow.com/a/61078380
     """
 
     graph: Graph
@@ -15,13 +16,15 @@ class Dijkstra:
         self.dijkstra_graph = self.graph.normalize_graph_for_dijkstra()
         self.vertices = self.graph.get_all_nodes()
 
-    def find_route(self, start, end):
-        unvisited = {n: float("inf") for n in self.vertices}
-        unvisited[start] = 0  # set start vertex to 0
+    def find_route(self, start: str, end: str) -> Dict[str, str]:
+        unvisited: Dict[str, float] = {n: float("inf") for n in self.vertices}
+        unvisited[start] = 0.0  # set start vertex to 0
         visited = {}  # list of all visited nodes
         parents = {}  # predecessors
         while unvisited:
-            min_vertex = min(unvisited, key=unvisited.get)  # get smallest distance
+            min_vertex = min(
+                unvisited, key=lambda x: unvisited[x]
+            )  # get smallest distance
             for neighbor, _ in self.dijkstra_graph.get(min_vertex, {}).items():
                 if neighbor in visited:
                     continue
@@ -37,7 +40,7 @@ class Dijkstra:
                 break
         return parents
 
-    def generate_path(self, parents, start, end):
+    def generate_path(self, parents: Dict[str, str], start: str, end: str) -> List[str]:
         path = [end]
         while True:
             if not parents:
@@ -48,7 +51,9 @@ class Dijkstra:
                 break
         return path
 
-    def find_shortest_path(self, source, destination) -> Tuple[List[str], float]:
+    def find_shortest_path(
+        self, source: str, destination: str
+    ) -> Tuple[List[str], float]:
         p = self.find_route(source, destination)
         path = self.generate_path(p, source, destination)
         return path, self.graph.compute_path_travel_time(path)
