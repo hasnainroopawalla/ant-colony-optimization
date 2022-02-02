@@ -1,5 +1,7 @@
 from dataclasses import dataclass
+import random
 from typing import List, Tuple
+
 from aco_routing.utils.graph import Graph
 from aco_routing.utils.ant import Ant
 
@@ -34,30 +36,34 @@ class ACO:
                 self.graph.deposit_pheromones_along_path(ant.path)
 
     def _deploy_search_ants(
-        self, source: str, destination: str, cycles: int = 100, max_iterations: int = 50
+        self,
+        source: str,
+        destination: str,
+        num_ants: int,
+        random_spawns: bool = False,
+        cycles: int = 100,
+        max_iterations: int = 50,
     ) -> None:
         """Deploys search ants which traverse the graph to find the shortest path.
 
         Args:
             source (str): The source node in the graph.
             destination (str): The destination node in the graph.
+            num_ants (int): The number of ants to be spawned.
+            random_spawns (bool): A flag to determine if the ants should be spawned at random nodes or always at the source node.
             cycles (int, optional): The number of cycles of generating and deploying ants (forward and backward). Defaults to 100.
             max_iterations (int, optional): The maximum number of steps an ant is allowed is to take in order to reach the destination.
                 If it fails to find a path, it is tagged as unfit. Defaults to 50.
         """
         for cycle in range(cycles):
-            ants: List[Ant] = [
-                Ant(self.graph, source, destination),
-                Ant(self.graph, source, destination),
-                Ant(self.graph, source, destination),
-                Ant(self.graph, source, destination),
-                Ant(self.graph, source, destination),
-                Ant(self.graph, source, destination),
-                Ant(self.graph, source, destination),
-                Ant(self.graph, source, destination),
-                Ant(self.graph, source, destination),
-            ]
-
+            ants: List[Ant] = []
+            for _ in range(num_ants):
+                spawn_point = (
+                    random.choice(self.graph.get_all_nodes())
+                    if random_spawns
+                    else source
+                )
+                ants.append(Ant(self.graph, spawn_point, destination))
             self._forward_ants(ants, max_iterations)
             self.graph.evaporate()
             self._backward_ants(ants)
@@ -91,6 +97,6 @@ class ACO:
             List[str]: The shortest path found by the ants (A list of node IDs).
             float: The total travel time of the shortest path.
         """
-        self._deploy_search_ants(source, destination)
+        self._deploy_search_ants(source, destination, num_ants=20, random_spawns=True)
         shortest_path = self._deploy_solution_ant(source, destination)
         return shortest_path, self.graph.compute_path_travel_time(shortest_path)
