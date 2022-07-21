@@ -5,7 +5,7 @@
 [![Deploy](https://github.com/hasnainroopawalla/Ant-Colony-Optimization/actions/workflows/deploy.yml/badge.svg)](https://github.com/hasnainroopawalla/Ant-Colony-Optimization/actions/workflows/deploy.yml)
 [![PyPi version](https://img.shields.io/pypi/v/aco_routing.svg)](https://pypi.python.org/pypi/aco_routing/)
 [![Python versions](https://img.shields.io/pypi/pyversions/aco_routing.svg?style=plastic)](https://img.shields.io/pypi/pyversions/aco_routing.svg?style=plastic)
-![Status](https://img.shields.io/badge/status-stable-green.svg)
+![Downloads](https://img.shields.io/pypi/dm/aco_routing.svg)
 
 
 A Python package to find the shortest path in a graph using Ant Colony Optimization (ACO).
@@ -119,4 +119,14 @@ Simulator(graph).simulate(source, destination, num_episodes=100, plot=True)
 - It simulates a real-life city, where the traffic conditions change every episode in a conditionally stochastic manner.
 - The ants continue to find the shortest path even after the traffic conditions change.
 
-> In progress: [The AntNet Algorithm](https://arxiv.org/abs/1610.04586).
+<hr>
+
+## Contributing
+
+
+- Post any issues and suggestions on the GitHub [issues](https://github.com/hasnainroopawalla/Ant-Colony-Optimization/issues) page.
+- To contribute, fork the project and then create a pull request back to master.
+
+
+## License
+This project is licensed under the MIT License - see the [LICENSE](https://github.com/hasnainroopawalla/Ant-Colony-Optimization/blob/73b65a6fd14e3e5517b479cfecac1140f0ae7899/LICENSE) file for details.
