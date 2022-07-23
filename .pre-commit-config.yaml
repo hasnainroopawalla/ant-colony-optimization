@@ -1,12 +1,13 @@
 repos:
 - repo: https://github.com/ambv/black
-  rev: 19.3b0
+  rev: 22.6.0
   hooks:
-  - id:  black
+  - id: black
 - repo: https://github.com/pre-commit/pre-commit-hooks
-  rev: v4.0.1
+  rev: v4.3.0
   hooks:
   - id: check-yaml
+  - id: check-toml
   - id: check-ast
   - id: end-of-file-fixer
   - id: trailing-whitespace
@@ -15,7 +16,7 @@ repos:
     args:
     - --maxkb=1000
 - repo: https://github.com/Lucas-C/pre-commit-hooks
-  rev: v1.1.10
+  rev: v1.3.0
   hooks:
     -   id: remove-crlf
     -   id: remove-tabs

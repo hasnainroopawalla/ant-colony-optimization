@@ -121,8 +121,8 @@ Simulator(graph).simulate(source, destination, num_episodes=100, plot=True)
 
 <hr>
 
-## Contributing
 
+## Contributing
 
 - Post any issues and suggestions on the GitHub [issues](https://github.com/hasnainroopawalla/Ant-Colony-Optimization/issues) page.
 - To contribute, fork the project and then create a pull request back to master.
