@@ -212,8 +212,7 @@ class Graph:
         return cost
 
     def evaporate(self) -> None:
-        """Evaporates the pheromone values of all the edges given the evaporation parameter (rho).
-        """
+        """Evaporates the pheromone values of all the edges given the evaporation parameter (rho)."""
         for node_id, node in self.graph.items():
             for neighbor, edge in self.graph[node_id].edges.items():
                 edge.pheromones = (1 - self.evaporation_rate) * edge.pheromones
