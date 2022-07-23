@@ -33,8 +33,7 @@ class Simulator:
     episodes: List[Episode] = field(default_factory=list)
 
     def show_simulation_plot(self) -> None:
-        """Displays a plot to compare the path costs of the candidate algorithm with the baseline Dijkstra's algorithm across all episodes.
-        """
+        """Displays a plot to compare the path costs of the candidate algorithm with the baseline Dijkstra's algorithm across all episodes."""
         dijkstra_costs, aco_costs = [], []
         for episode in self.episodes:
             dijkstra_costs.append(episode.dijkstra_cost)

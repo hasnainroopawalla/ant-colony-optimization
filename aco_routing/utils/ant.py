@@ -75,7 +75,7 @@ class Ant:
         """
         total = 0.0
         for neighbor, edge in unvisited_neighbors.items():
-            total += (edge.pheromones ** alpha) * ((1 / edge.travel_time) ** beta)
+            total += (edge.pheromones**alpha) * ((1 / edge.travel_time) ** beta)
         return total
 
     @staticmethod
@@ -96,7 +96,7 @@ class Ant:
         probabilities = {}
         for neighbor, edge in unvisited_neighbors.items():
             probabilities[neighbor] = (
-                (edge.pheromones ** alpha) * ((1 / edge.travel_time) ** beta)
+                (edge.pheromones**alpha) * ((1 / edge.travel_time) ** beta)
             ) / total
         return probabilities
 
@@ -157,8 +157,7 @@ class Ant:
         return self._choose_neighbor_using_roulette_wheel(sorted_probabilities)
 
     def take_step(self) -> None:
-        """This method allows the ant to travel to a neighbor of the current node in the graph.
-        """
+        """This method allows the ant to travel to a neighbor of the current node in the graph."""
         # Mark the node as visited.
         self.visited_nodes.add(self.current_node)
 
