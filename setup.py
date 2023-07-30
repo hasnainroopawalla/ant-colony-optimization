@@ -8,9 +8,9 @@ with open(os.path.join(repository_dir, "README.md")) as fh:
 
 setup(
     name="aco_routing",
-    version="1.0.4",
+    version="1.0.5",
     packages=find_packages(exclude="tests"),
-    description="A Python package to find the shortest path in a graph using Ant Colony Optimization (ACO).",
+    description="A Python package to find the shortest path in a graph using Ant Colony Optimization (ACO)",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/hasnainroopawalla/ant-colony-optimization",
