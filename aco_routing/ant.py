@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 import random
 from typing import Dict, List, Set
 
-from aco_routing.utils.graph import Edge, Graph
+from aco_routing.graph import Edge, Graph
 
 
 @dataclass
@@ -13,11 +13,12 @@ class Ant:
         graph (Graph): The Graph object.
         source (str): The source node of the ant.
         destination (str): The destination node of the ant.
-        alpha (float): The amount of importance given to the pheromone by the ant. Defaults to 0.9.
-        beta (float): The amount of importance given to the travel time value by the ant. Defaults to 0.1.
-        visited_nodes (Set): A set of nodes that have been visited by the ant.
-        path (List[str]): A List of node IDs of the path taken by the ant so far.
-        is_fit (bool): A flag which indicates if the ant has reached the destination (fit) or not (unfit). Defaults to False.
+        alpha (float, optional): The amount of importance given to the pheromone by the ant. Defaults to 0.9.
+        beta (float, optional): The amount of importance given to the travel time value by the ant. Defaults to 0.1.
+        visited_nodes (Set, optional): A set of nodes that have been visited by the ant.
+        path (List[str], optional): A List of node IDs of the path taken by the ant so far.
+        is_fit (bool, optional): Indicates if the ant has reached the destination (fit) or not (unfit). Defaults to False.
+        is_solution_ant (bool, optional): Indicates if the ant is the final/solution ant. Defaults to False.
     """
 
     graph: Graph
@@ -28,6 +29,7 @@ class Ant:
     visited_nodes: Set = field(default_factory=set)
     path: List[str] = field(default_factory=list)
     is_fit: bool = False
+    is_solution_ant: bool = False
 
     def __post_init__(self) -> None:
         self.current_node = self.source
@@ -149,11 +151,19 @@ class Ant:
         Returns:
             str: The ID of the next node to be visited by the ant.
         """
+        if self.is_solution_ant:
+            # The final/solution ant greedily chooses the next node with the highest pheromone value.
+            return max(
+                unvisited_neighbors, key=lambda k: unvisited_neighbors[k].pheromones
+            )
         edges_total = self._calculate_edges_total(unvisited_neighbors, alpha, beta)
+
         probabilities = self._calculate_edge_probabilites(
             unvisited_neighbors, edges_total, alpha, beta
         )
         sorted_probabilities = self._sort_edge_probabilites(probabilities)
+
+        # Pick the next node based on the Roulette Wheel selection technique.
         return self._choose_neighbor_using_roulette_wheel(sorted_probabilities)
 
     def take_step(self) -> None:
@@ -171,8 +181,11 @@ class Ant:
         # Find unvisited neighbors of the current node.
         unvisited_neighbors = self._get_unvisited_neighbors(all_neighbors)
 
-        # Pick the next node based on the Roulette Wheel selection technique.
+        # Pick the next node of the ant.
         next_node = self._pick_next_node(unvisited_neighbors, self.alpha, self.beta)
+
+        if not next_node:
+            return
 
         self.path.append(next_node)
         self.current_node = next_node
