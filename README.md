@@ -28,14 +28,11 @@ $ pip install aco_routing
 
 
 ## 🎈 Usage <a name="usage"></a>
-> **_Check out:_** [aco_routing/example.py](https://github.com/hasnainroopawalla/Ant-Colony-Optimization/tree/master/aco_routing/example.py)
+> **_Check out:_** [example.py](https://github.com/hasnainroopawalla/Ant-Colony-Optimization/blob/00cd068597ab9a69a8eb81c8a3fd984797d2eefd/example.py)
 
 Import all the dependencies.
 ```python
-from aco_routing.utils.graph import Graph
-from aco_routing.dijkstra import Dijkstra
-from aco_routing.utils.simulator import Simulator
-from aco_routing.aco import ACO
+from aco_routing.utils.graph import Graph, Dijkstra, ACO
 ```
 
 Create a `Graph` object.
@@ -58,7 +55,7 @@ graph.add_edge("E", "D", travel_time=2)
 graph.add_edge("G", "E", travel_time=2)
 ```
 
-Define a `source` and `destination` as well create objects for the `Dijkstra` and `ACO` classes.
+Define a `source` and `destination` as well as create objects for the `Dijkstra` and `ACO` classes.
 ```python
 source = "A"
 destination = "D"
@@ -76,48 +73,42 @@ print(f"ACO - path: {aco_path}, cost: {aco_cost}")
 print(f"Dijkstra - path: {dijkstra_path}, cost: {dijkstra_cost}")
 ```
 
-Simulate a real-life scenario with various episodes of stochastically updating traffic conditions in a city.
-```python
-Simulator(graph).simulate(source, destination, num_episodes=100, plot=True)
+Output:
 ```
-
+ACO - path: ['A', 'H', 'G', 'E', 'D'], cost: 8.0
+Dijkstra - path: ['A', 'H', 'G', 'E', 'D'], cost: 8.0
+```
 
 ## 📦 Contents <a name = "contents"></a>
 
 ### Graph
-`aco_routing.utils.graph.Graph`
+`aco_routing.Graph`
 - A Directed Graph class which consists of `Nodes` and `Edges`.
 - The `evaporation_rate` is initialized here.
 
 ### Node
-`aco_routing.utils.graph.Node`
+`aco_routing.Node`
 - A `Node` class which represents a node in the Graph and consists of various outgoing edges.
 
 ### Edge
-`aco_routing.utils.graph.Edge`
+`aco_routing.Edge`
 - An `Edge` class which represents a link between 2 nodes in the Graph.
 - Each `Edge` has 2 parameters:
     - `travel_time`: The amount of time it takes to traverse the edge. A high value indicates more traffic.
     - `pheromones`: A heuristic parameter i.e., the pheromone values deposited by the ants.
 
 ### Dijkstra
-`aco_routing.dijkstra.Dijkstra`
+`aco_routing.Dijkstra`
 - The baseline algorithm to compare the results of the candidate algorithm with.
 - The Dijkstra's algorithm ([source](https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm)) returns the shortest path between any 2 nodes in a graph.
 
 ### Ant
-`aco_routing.utils.ant.Ant`
+`aco_routing.Ant`
 - The `Ant` class representing an ant that traverses the graph.
 
 ### ACO
-`aco_routing.aco.ACO`
+`aco_routing.ACO`
 - The traditional Ant Colony Optimization algorithm that spawns various ants at random nodes and tries to find the shortest path between the specified source and destination.
-
-### Simulator
-`aco_routing.utils.simulator.Simulator`
-- The simulator class is used to simulate and evaluate the performance of the candidate algorithm (ACO) with a baseline Dijkstra's Algorithm.
-- It simulates a real-life city, where the traffic conditions change every episode in a conditionally stochastic manner.
-- The ants continue to find the shortest path even after the traffic conditions change.
 
 <hr>
 
