@@ -32,7 +32,7 @@ $ pip install aco_routing
 
 Import all the dependencies.
 ```python
-from aco_routing.utils.graph import Graph, Dijkstra, ACO
+from aco_routing import Graph, Dijkstra, ACO
 ```
 
 Create a `Graph` object.
