@@ -1,12 +1,12 @@
 from dataclasses import dataclass
 from typing import Dict, List, Tuple
 
-from aco_routing.utils.graph import Graph
+from aco_routing.graph import Graph
 
 
 @dataclass
 class Dijkstra:
-    """The basline Dijkstra's Algorithm to find the shortest path between 2 nodes in the graph.
+    """The basline Dijkstra's Algorithm to find the shortest path between two nodes in the graph.
     Reference: https://stackoverflow.com/a/61078380
     """
 

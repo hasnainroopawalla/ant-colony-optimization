@@ -1,7 +1,4 @@
-from aco_routing.utils.graph import Graph
-from aco_routing.dijkstra import Dijkstra
-from aco_routing.utils.simulator import Simulator
-from aco_routing.aco import ACO
+from aco_routing import Graph, Dijkstra, ACO
 
 graph = Graph()
 
@@ -23,10 +20,10 @@ destination = "D"
 dijkstra = Dijkstra(graph)
 aco = ACO(graph)
 
+aco_path, aco_cost = aco.find_shortest_path(
+    source, destination, num_ants=100, max_iterations=50, cycles=100
+)
 dijkstra_path, dijkstra_cost = dijkstra.find_shortest_path(source, destination)
-aco_path, aco_cost = aco.find_shortest_path(source, destination)
 
 print(f"ACO - path: {aco_path}, cost: {aco_cost}")
 print(f"Dijkstra - path: {dijkstra_path}, cost: {dijkstra_cost}")
-
-Simulator(graph).simulate(source, destination, num_episodes=100, plot=True)
