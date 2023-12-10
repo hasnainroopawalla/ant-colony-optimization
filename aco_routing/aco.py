@@ -1,14 +1,14 @@
 from dataclasses import dataclass
 import random
-from typing import List, Tuple
+from typing import Dict, List, Tuple
+import networkx as nx
 
-from aco_routing.graph import Graph
 from aco_routing.ant import Ant
 
 
 @dataclass
 class ACO:
-    graph: Graph
+    graph: nx.Graph
 
     def _forward_ants(self, ants: List[Ant], max_iterations: int) -> None:
         """Deploys forward search ants in the graph.
@@ -59,11 +59,9 @@ class ACO:
             ants: List[Ant] = []
             for _ in range(num_ants):
                 spawn_point = (
-                    random.choice(self.graph.get_all_nodes())
-                    if random_spawns
-                    else source
+                    random.choice(list(self.graph.nodes)) if random_spawns else source
                 )
-                ants.append(Ant(self.graph, spawn_point, destination))
+                ants.append(Ant(self.graph, source, destination))
             self._forward_ants(ants, max_iterations)
             self.graph.evaporate()
             self._backward_ants(ants)
