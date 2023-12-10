@@ -13,6 +13,7 @@ def roulette_wheel_selection(probabilities: Dict[str, float]) -> str:
     sorted_probabilities = {
         k: v for k, v in sorted(probabilities.items(), key=lambda item: -item[1])
     }
+
     pick = random.random()
     current = 0.0
     for node, fitness in sorted_probabilities.items():

@@ -9,6 +9,11 @@ from aco_routing.ant import Ant
 @dataclass
 class ACO:
     graph: nx.Graph
+    evaporation_rate: float = 0.1
+
+    def __post_init__(self):
+        for edge in self.graph.edges:
+            self.graph[edge[0]][edge[1]]["pheromones"] = 1.0
 
     def _forward_ants(self, ants: List[Ant], max_iterations: int) -> None:
         """Deploys forward search ants in the graph.
@@ -33,7 +38,7 @@ class ACO:
         """
         for _, ant in enumerate(ants):
             if ant.is_fit:
-                self.graph.deposit_pheromones_along_path(ant.path)
+                ant.deposit_pheromones_on_path()
 
     def _deploy_search_ants(
         self,
@@ -61,12 +66,12 @@ class ACO:
                 spawn_point = (
                     random.choice(list(self.graph.nodes)) if random_spawns else source
                 )
-                ants.append(Ant(self.graph, source, destination))
+                ants.append(Ant(self.graph, spawn_point, destination))
             self._forward_ants(ants, max_iterations)
-            self.graph.evaporate()
+            self._evaporate_pheromones()
             self._backward_ants(ants)
 
-    def _deploy_solution_ant(self, source: str, destination: str) -> List[str]:
+    def _deploy_solution_ant(self, source: str, destination: str) -> Ant:
         """Deploys the final ant that greedily w.r.t. the pheromones finds the shortest path from the source to the destination.
 
         Args:
@@ -80,7 +85,13 @@ class ACO:
         ant = Ant(self.graph, source, destination, is_solution_ant=True)
         while not ant.reached_destination():
             ant.take_step()
-        return ant.path
+        return ant
+
+    def _evaporate_pheromones(self) -> None:
+        """Evaporates the pheromone values of all the edges given the evaporation parameter (rho)"""
+        for edge in self.graph.edges:
+            source, destination = edge[0], edge[1]
+            self.graph[source][destination]["pheromones"] *= 1 - self.evaporation_rate
 
     def find_shortest_path(
         self,
@@ -114,5 +125,5 @@ class ACO:
             cycles=cycles,
             random_spawns=random_spawn,
         )
-        shortest_path = self._deploy_solution_ant(source, destination)
-        return shortest_path, self.graph.compute_path_travel_time(shortest_path)
+        solution_ant = self._deploy_solution_ant(source, destination)
+        return solution_ant.path, solution_ant.path_cost
