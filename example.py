@@ -5,17 +5,17 @@ import matplotlib.pyplot as plt
 
 G = nx.DiGraph()
 
-G.add_edge("A", "B", weight=2)
-G.add_edge("B", "C", weight=2)
-G.add_edge("A", "H", weight=2)
-G.add_edge("H", "G", weight=2)
-G.add_edge("C", "F", weight=1)
-G.add_edge("F", "G", weight=1)
-G.add_edge("G", "F", weight=1)
-G.add_edge("F", "C", weight=1)
-G.add_edge("C", "D", weight=10)
-G.add_edge("E", "D", weight=2)
-G.add_edge("G", "E", weight=2)
+G.add_edge("A", "B", cost=2)
+G.add_edge("B", "C", cost=2)
+G.add_edge("A", "H", cost=2)
+G.add_edge("H", "G", cost=2)
+G.add_edge("C", "F", cost=1)
+G.add_edge("F", "G", cost=1)
+G.add_edge("G", "F", cost=1)
+G.add_edge("F", "C", cost=1)
+G.add_edge("C", "D", cost=10)
+G.add_edge("E", "D", cost=2)
+G.add_edge("G", "E", cost=2)
 
 # G.add_edge("2", "1", weight=1655)
 # G.add_edge("2", "3", weight=3230)
@@ -73,18 +73,18 @@ G.add_edge("G", "E", weight=2)
 source = "A"  # "4"
 destination = "D"  # "1"
 
-aco = ACO(G)
+# aco = ACO(G)
 
-aco_path, aco_cost = aco.find_shortest_path(
-    source, destination, num_ants=1000, max_iterations=50, cycles=100
-)
+# aco_path, aco_cost = aco.find_shortest_path(
+#     source, destination, num_ants=100, max_iterations=50, cycles=100
+# )
 
 
-dijkstra_path = nx.dijkstra_path(G, source, destination)
-dijkstra_cost = nx.path_weight(G, dijkstra_path, "weight")
+# dijkstra_path = nx.dijkstra_path(G, source, destination)
+# dijkstra_cost = nx.path_weight(G, dijkstra_path, "cost")
 
-print(aco_path, aco_cost)
-print(dijkstra_path, dijkstra_cost)
+# print(aco_path, aco_cost)
+# print(dijkstra_path, dijkstra_cost)
 
 
 # for edge in G.edges:

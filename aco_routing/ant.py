@@ -2,23 +2,23 @@ from dataclasses import dataclass, field
 from typing import Dict, List, Set, Union
 import networkx as nx
 
-from aco_routing import utils
+from aco_routing import utils, graph_utils
 
 
 @dataclass
 class Ant:
-    """A class for an Ant that traverses the graph.
+    """A class for an Ant that traverses the graph
 
     Args:
-        graph (Graph): The Graph object.
-        source (str): The source node of the ant.
-        destination (str): The destination node of the ant.
-        alpha (float, optional): The amount of importance given to the pheromone by the ant. Defaults to 0.9.
-        beta (float, optional): The amount of importance given to the travel time value by the ant. Defaults to 0.1.
-        visited_nodes (Set, optional): A set of nodes that have been visited by the ant.
-        path (List[str], optional): A List of node IDs of the path taken by the ant so far.
-        is_fit (bool, optional): Indicates if the ant has reached the destination (fit) or not (unfit). Defaults to False.
-        is_solution_ant (bool, optional): Indicates if the ant is the final/solution ant. Defaults to False.
+        graph (Graph): The Graph object
+        source (str): The source node of the ant
+        destination (str): The destination node of the ant
+        alpha (float, optional): The amount of importance given to the pheromone by the ant
+        beta (float, optional): The amount of importance given to the travel time value by the ant
+        visited_nodes (Set, optional): A set of nodes that have been visited by the ant
+        path (List[str], optional): A List of node IDs of the path taken by the ant so far
+        is_fit (bool, optional): Indicates if the ant has reached the destination (fit) or not (unfit)
+        is_solution_ant (bool, optional): Indicates if the ant is the final/solution ant
     """
 
     graph: nx.DiGraph
@@ -76,9 +76,15 @@ class Ant:
         """
         total = 0.0
         for neighbor in neighbors:
+            edge_pheromones = graph_utils.get_edge_pheromones(
+                self.graph, self.current_node, neighbor
+            )
+            edge_cost = graph_utils.get_edge_cost(
+                self.graph, self.current_node, neighbor
+            )
             edge = self.graph.get_edge_data(self.current_node, neighbor)
             total += utils.compute_edge_desirability(
-                edge["pheromones"], edge["weight"], self.alpha, self.beta
+                edge_pheromones, edge_cost, self.alpha, self.beta
             )
         return total
 
@@ -106,9 +112,15 @@ class Ant:
         )
 
         for neighbor in unvisited_neighbors:
-            edge = self.graph.get_edge_data(self.current_node, neighbor)
+            edge_pheromones = graph_utils.get_edge_pheromones(
+                self.graph, self.current_node, neighbor
+            )
+            edge_cost = graph_utils.get_edge_cost(
+                self.graph, self.current_node, neighbor
+            )
+
             current_edge_desirability = utils.compute_edge_desirability(
-                edge["pheromones"], edge["weight"], self.alpha, self.beta
+                edge_pheromones, edge_cost, self.alpha, self.beta
             )
             probabilities[neighbor] = current_edge_desirability / all_edges_desirability
 
@@ -131,9 +143,9 @@ class Ant:
             # The final/solution ant greedily chooses the next node with the highest pheromone value
             return max(
                 unvisited_neighbors,
-                key=lambda neighbor: self.graph.get_edge_data(
-                    self.current_node, neighbor
-                )["pheromones"],
+                key=lambda neighbor: graph_utils.get_edge_pheromones(
+                    self.graph, self.current_node, neighbor
+                ),
             )
 
         # check if ant has no possible nodes to move to
@@ -165,17 +177,20 @@ class Ant:
             return
 
         self.path.append(next_node)
-        self.path_cost += self.graph.get_edge_data(self.current_node, next_node)[
-            "weight"
-        ]
+        self.path_cost += graph_utils.get_edge_cost(
+            self.graph, self.current_node, next_node
+        )
         self.current_node = next_node
 
     def deposit_pheromones_on_path(self) -> None:
+        # TODO: check formula
         """Updates the pheromones along all the edges in the path
 
         Args:
             path (List[str]): The path followed by the ant
         """
         for i in range(len(self.path) - 1):
-            start_node, end_node = self.path[i], self.path[i + 1]
-            self.graph[start_node][end_node]["pheromones"] += 1 / self.path_cost
+            u, v = self.path[i], self.path[i + 1]
+            old_pheromone_value = graph_utils.get_edge_pheromones(self.graph, u, v)
+            new_pheromone_value = old_pheromone_value + (1 / self.path_cost)
+            graph_utils.set_edge_pheromones(self.graph, u, v, new_pheromone_value)
