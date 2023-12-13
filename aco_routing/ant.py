@@ -2,9 +2,11 @@ from dataclasses import dataclass, field
 from typing import Dict, List, Set, Union
 import networkx as nx
 
-from aco_routing import utils, graph_utils
+from aco_routing import utils
+from aco_routing.graph_api import GraphApi
 
 
+# TODO: Fix function desc
 @dataclass
 class Ant:
     """A class for an Ant that traverses the graph
@@ -21,7 +23,7 @@ class Ant:
         is_solution_ant (bool, optional): Indicates if the ant is the final/solution ant
     """
 
-    graph: nx.DiGraph
+    graph_api: GraphApi
     source: str
     destination: str
     alpha: float = 0.7
@@ -55,7 +57,7 @@ class Ant:
         """
         return [
             node
-            for node in self.graph.neighbors(self.current_node)
+            for node in self.graph_api.get_neighbors(self.current_node)
             if node not in self.visited_nodes
         ]
 
@@ -76,13 +78,10 @@ class Ant:
         """
         total = 0.0
         for neighbor in neighbors:
-            edge_pheromones = graph_utils.get_edge_pheromones(
-                self.graph, self.current_node, neighbor
+            edge_pheromones = self.graph_api.get_edge_pheromones(
+                self.current_node, neighbor
             )
-            edge_cost = graph_utils.get_edge_cost(
-                self.graph, self.current_node, neighbor
-            )
-            edge = self.graph.get_edge_data(self.current_node, neighbor)
+            edge_cost = self.graph_api.get_edge_cost(self.current_node, neighbor)
             total += utils.compute_edge_desirability(
                 edge_pheromones, edge_cost, self.alpha, self.beta
             )
@@ -112,12 +111,10 @@ class Ant:
         )
 
         for neighbor in unvisited_neighbors:
-            edge_pheromones = graph_utils.get_edge_pheromones(
-                self.graph, self.current_node, neighbor
+            edge_pheromones = self.graph_api.get_edge_pheromones(
+                self.current_node, neighbor
             )
-            edge_cost = graph_utils.get_edge_cost(
-                self.graph, self.current_node, neighbor
-            )
+            edge_cost = self.graph_api.get_edge_cost(self.current_node, neighbor)
 
             current_edge_desirability = utils.compute_edge_desirability(
                 edge_pheromones, edge_cost, self.alpha, self.beta
@@ -143,15 +140,14 @@ class Ant:
             # The final/solution ant greedily chooses the next node with the highest pheromone value
             return max(
                 unvisited_neighbors,
-                key=lambda neighbor: graph_utils.get_edge_pheromones(
-                    self.graph, self.current_node, neighbor
+                key=lambda neighbor: self.graph_api.get_edge_pheromones(
+                    self.current_node, neighbor
                 ),
             )
 
         # check if ant has no possible nodes to move to
         if len(unvisited_neighbors) == 0:
             return None
-
         probabilities = self._calculate_edge_probabilities(unvisited_neighbors)
 
         # Pick the next node based on the roulette wheel selection technique
@@ -164,7 +160,9 @@ class Ant:
 
         # TODO: remove all_neighbors method call
         # Find all the neighbors of the current node
-        all_neighbors = [node for node in self.graph.neighbors(self.current_node)]
+        all_neighbors = [
+            node for node in self.graph_api.get_neighbors(self.current_node)
+        ]
 
         # Check if the current node has no neighbors (isolated node)
         if len(all_neighbors) == 0:
@@ -177,9 +175,7 @@ class Ant:
             return
 
         self.path.append(next_node)
-        self.path_cost += graph_utils.get_edge_cost(
-            self.graph, self.current_node, next_node
-        )
+        self.path_cost += self.graph_api.get_edge_cost(self.current_node, next_node)
         self.current_node = next_node
 
     def deposit_pheromones_on_path(self) -> None:
@@ -191,6 +187,6 @@ class Ant:
         """
         for i in range(len(self.path) - 1):
             u, v = self.path[i], self.path[i + 1]
-            old_pheromone_value = graph_utils.get_edge_pheromones(self.graph, u, v)
+            old_pheromone_value = self.graph_api.get_edge_pheromones(u, v)
             new_pheromone_value = old_pheromone_value + (1 / self.path_cost)
-            graph_utils.set_edge_pheromones(self.graph, u, v, new_pheromone_value)
+            self.graph_api.set_edge_pheromones(u, v, new_pheromone_value)

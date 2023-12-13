@@ -4,7 +4,7 @@ from typing import List, Tuple
 import networkx as nx
 
 from aco_routing.ant import Ant
-from aco_routing import graph_utils
+from aco_routing.graph_api import GraphApi
 
 
 @dataclass
@@ -13,10 +13,11 @@ class ACO:
     evaporation_rate: float = 0.1
 
     def __post_init__(self):
+        self.graph_api = GraphApi(self.graph)
         for edge in self.graph.edges:
-            graph_utils.set_edge_pheromones(self.graph, edge[0], edge[1], 1.0)
+            self.graph_api.set_edge_pheromones(edge[0], edge[1], 1.0)
 
-    def _forward_ants(self, ants: List[Ant], max_iterations: int) -> None:
+    def _deploy_forward_search_ants(self, ants: List[Ant], max_iterations: int) -> None:
         """Deploys forward search ants in the graph
 
         Args:
@@ -31,7 +32,7 @@ class ACO:
                     break
                 ant.take_step()
 
-    def _backward_ants(self, ants: List[Ant]) -> None:
+    def _deploy_backward_search_ants(self, ants: List[Ant]) -> None:
         """Sends the ants (which are fit) backwards towards the source while they drop pheromones on the path
 
         Args:
@@ -65,14 +66,14 @@ class ACO:
             ants: List[Ant] = []
             for _ in range(num_ants):
                 spawn_point = (
-                    random.choice(graph_utils.get_all_nodes(self.graph))
+                    random.choice(self.graph_api.get_all_nodes())
                     if random_spawns
                     else source
                 )
-                ants.append(Ant(self.graph, spawn_point, destination))
-            self._forward_ants(ants, max_iterations)
-            self._evaporate_pheromones()
-            self._backward_ants(ants)
+                ants.append(Ant(self.graph_api, spawn_point, destination))
+            self._deploy_forward_search_ants(ants, max_iterations)
+            # self._evaporate_pheromones()
+            self._deploy_backward_search_ants(ants)
 
     def _deploy_solution_ant(self, source: str, destination: str) -> Ant:
         """Deploys the final ant that greedily w.r.t. the pheromones finds the shortest path from the source to the destination
@@ -85,7 +86,7 @@ class ACO:
             List[str]: The shortest path found by the ants (A list of node IDs)
         """
         # Spawn a pheromone-greedy ant
-        ant = Ant(self.graph, source, destination, is_solution_ant=True)
+        ant = Ant(self.graph_api, source, destination, is_solution_ant=True)
         while not ant.reached_destination():
             ant.take_step()
         return ant
@@ -93,8 +94,8 @@ class ACO:
     def _evaporate_pheromones(self) -> None:
         """Evaporates the pheromone values of all the edges given the evaporation rate (rho)"""
         for edge in self.graph.edges:
-            graph_utils.evaporate_edge_pheromones(
-                self.graph, edge[0], edge[1], self.evaporation_rate
+            self.graph_api.evaporate_edge_pheromones(
+                edge[0], edge[1], self.evaporation_rate
             )
 
     def find_shortest_path(
