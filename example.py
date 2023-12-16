@@ -1,7 +1,6 @@
 import networkx as nx
-
 from aco_routing import ACO
-import matplotlib.pyplot as plt
+
 
 G = nx.DiGraph()
 
@@ -16,6 +15,10 @@ G = nx.DiGraph()
 # G.add_edge("C", "D", cost=10)
 # G.add_edge("E", "D", cost=2)
 # G.add_edge("G", "E", cost=2)
+
+# source = "A"
+# destination = "D"
+
 
 G.add_edge("2", "1", cost=1655)
 G.add_edge("2", "3", cost=3230)
@@ -70,45 +73,22 @@ G.add_edge("23", "16", cost=2557)
 G.add_edge("24", "23", cost=984)
 G.add_edge("24", "25", cost=2519)
 
-source = "19"  # "4"
-destination = "1"  # "1"
-
-aco = ACO(G)
-
-aco_path, aco_cost = aco.find_shortest_path(
-    source, destination, num_ants=100, max_iterations=50, cycles=100
-)
+source = "19"
+destination = "1"
 
 
 dijkstra_path = nx.dijkstra_path(G, source, destination)
 dijkstra_cost = nx.path_weight(G, dijkstra_path, "cost")
-
-print(f"ACO - path: {aco_path}, cost: {aco_cost}")
 print(f"Dijkstra - path: {dijkstra_path}, cost: {dijkstra_cost}")
 
 
-# for edge in G.edges:
-#     source, destination = edge[0], edge[1]
-#     G[source][destination]["pheromones"] = round(G[source][destination]["pheromones"])
+aco = ACO(G, ant_max_steps=100, num_iterations=100, ant_random_spawn=True)
 
-# pos = nx.spring_layout(G, seed=2)
-# nx.draw(G, pos, width=4)
+aco_path, aco_cost = aco.find_shortest_path(
+    source,
+    destination,
+    num_ants=100,
+)
+print(f"ACO - path: {aco_path}, cost: {aco_cost}")
 
-# nx.draw_networkx_nodes(G, pos, node_size=700)
-
-# # nx.draw_networkx_edges(G, pos, width=2)
-# nx.draw_networkx_edges(
-#     G, pos, edgelist=list(zip(aco_path, aco_path[1:])), edge_color="r", width=4
-# )
-
-# # node labels
-# nx.draw_networkx_labels(G, pos, font_size=20)
-# # edge cost labels
-# edge_labels = nx.get_edge_attributes(G, "pheromones")
-# nx.draw_networkx_edge_labels(G, pos, edge_labels)
-
-# ax = plt.gca()
-# ax.margins(0.08)
-# plt.axis("off")
-# plt.tight_layout()
-# plt.show()
+# aco.graph_api.visualize_graph(aco_path)

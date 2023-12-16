@@ -9,7 +9,7 @@ def compute_edge_desirability(
 
 
 def roulette_wheel_selection(probabilities: Dict[str, float]) -> str:
-    # TODO: Add desc
+    """source: https://en.wikipedia.org/wiki/Fitness_proportionate_selection"""
     sorted_probabilities = {
         k: v for k, v in sorted(probabilities.items(), key=lambda item: -item[1])
     }
