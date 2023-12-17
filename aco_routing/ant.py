@@ -85,7 +85,6 @@ class Ant:
         Returns:
             Dict[str, float]: A dictionary mapping nodes to their transition probabilities
         """
-
         probabilities: Dict[str, float] = {}
 
         all_edges_desirability = self._compute_all_edges_desirability(
@@ -114,6 +113,11 @@ class Ant:
         unvisited_neighbors = self._get_unvisited_neighbors()
 
         if self.is_solution_ant:
+            if len(unvisited_neighbors) == 0:
+                raise Exception(
+                    f"No path found from {self.source} to {self.destination}"
+                )
+
             # The final/solution ant greedily chooses the next node with the highest pheromone value
             return max(
                 unvisited_neighbors,
