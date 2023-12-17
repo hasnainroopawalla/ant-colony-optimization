@@ -32,5 +32,3 @@ aco_path, aco_cost = aco.find_shortest_path(
 
 print(f"Dijkstra - path: {dijkstra_path}, cost: {dijkstra_cost}")
 print(f"ACO - path: {aco_path}, cost: {aco_cost}")
-
-aco.graph_api.visualize_graph(aco_path)
