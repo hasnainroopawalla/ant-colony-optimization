@@ -9,7 +9,7 @@ G.add_edge("C", "D", cost=3)
 G.add_edge("C", "E", cost=7)
 G.add_edge("E", "A", cost=1)
 
-graph_api = GraphApi(G)
+graph_api = GraphApi(G, evaporation_rate=0.1)
 
 
 def test_get_nodes() -> None:

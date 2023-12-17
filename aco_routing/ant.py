@@ -11,7 +11,7 @@ class Ant:
     source: str
     destination: str
     # Pheromone bias
-    alpha: float = 0.7  # TODO: move to aco
+    alpha: float = 0.7
     # Edge cost bias
     beta: float = 0.3
     # Set of nodes that have been visited by the ant
@@ -114,13 +114,6 @@ class Ant:
         unvisited_neighbors = self._get_unvisited_neighbors()
 
         if self.is_solution_ant:
-            print(self.path)
-
-            for neighbor in unvisited_neighbors:
-                print(
-                    neighbor,
-                    self.graph_api.get_edge_pheromones(self.current_node, neighbor),
-                )
             # The final/solution ant greedily chooses the next node with the highest pheromone value
             return max(
                 unvisited_neighbors,

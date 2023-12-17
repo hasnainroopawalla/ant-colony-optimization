@@ -18,6 +18,10 @@ class ACO:
     ant_random_spawn: bool = True
     # Evaporation rate (rho)
     evaporation_rate: float = 0.1
+    # Pheromone bias
+    alpha: float = 0.7
+    # Edge cost bias
+    beta: float = 0.3
     # Search ants
     search_ants: List[Ant] = field(default_factory=list)
 
@@ -65,7 +69,15 @@ class ACO:
                     if self.ant_random_spawn
                     else source
                 )
-                self.search_ants.append(Ant(self.graph_api, spawn_point, destination))
+
+                ant = Ant(
+                    self.graph_api,
+                    spawn_point,
+                    destination,
+                    alpha=self.alpha,
+                    beta=self.beta,
+                )
+                self.search_ants.append(ant)
 
             self._deploy_forward_search_ants()
             self._deploy_backward_search_ants()
@@ -80,7 +92,12 @@ class ACO:
         Returns:
             Ant: The solution ant with the computed shortest path and cost
         """
-        ant = Ant(self.graph_api, source, destination, is_solution_ant=True)
+        ant = Ant(
+            self.graph_api,
+            source,
+            destination,
+            is_solution_ant=True,
+        )
         while not ant.reached_destination():
             ant.take_step()
         return ant

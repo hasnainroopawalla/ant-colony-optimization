@@ -4,20 +4,16 @@
 [![Develop](https://github.com/hasnainroopawalla/Ant-Colony-Optimization/actions/workflows/develop.yml/badge.svg)](https://github.com/hasnainroopawalla/Ant-Colony-Optimization/actions/workflows/develop.yml)
 [![Deploy](https://github.com/hasnainroopawalla/Ant-Colony-Optimization/actions/workflows/deploy.yml/badge.svg)](https://github.com/hasnainroopawalla/Ant-Colony-Optimization/actions/workflows/deploy.yml)
 [![PyPi version](https://img.shields.io/pypi/v/aco_routing.svg)](https://pypi.python.org/pypi/aco_routing/)
-[![Python versions](https://img.shields.io/pypi/pyversions/aco_routing.svg?style=plastic)](https://img.shields.io/pypi/pyversions/aco_routing.svg?style=plastic)
 ![Downloads](https://img.shields.io/pypi/dm/aco_routing.svg)
+<!-- [![Python versions](https://img.shields.io/pypi/pyversions/aco_routing.svg?style=plastic)](https://img.shields.io/pypi/pyversions/aco_routing.svg?style=plastic) -->
 
 
 A Python package to find the shortest path in a graph using Ant Colony Optimization (ACO).
 
+
 The Ant colony Optimization algorithm is a probabilistic technique for solving computational problems which can be reduced to finding good paths through graphs ([source](https://en.wikipedia.org/wiki/Ant_colony_optimization_algorithms)).
 
-## 📝 Table of Contents
-
-- [Getting Started](#getting_started)
-- [Usage](#usage)
-- [Contents](#contents)
-
+This implementation of the ACO algorithm uses the [NetworkX](https://networkx.org/) graph environment.
 
 ## 🏁 Getting Started <a name = "getting_started"></a>
 
@@ -26,91 +22,58 @@ The Ant colony Optimization algorithm is a probabilistic technique for solving c
 $ pip install aco_routing
 ```
 
-
 ## 🎈 Usage <a name="usage"></a>
 > **_Check out:_** [example.py](https://github.com/hasnainroopawalla/Ant-Colony-Optimization/blob/00cd068597ab9a69a8eb81c8a3fd984797d2eefd/example.py)
 
-Import all the dependencies.
+Import all the dependencies:
 ```python
-from aco_routing import Graph, Dijkstra, ACO
+from aco_routing import ACO
+import networkx as nx
 ```
 
-Create a `Graph` object.
+Create a `NetworkX.Graph` object with nodes and edges:
 ```python
-graph = Graph()
+G = nx.DiGraph()
+
+G.add_edge("A", "B", cost=2)
+G.add_edge("B", "C", cost=2)
+G.add_edge("A", "H", cost=2)
+G.add_edge("H", "G", cost=2)
+G.add_edge("C", "F", cost=1)
+G.add_edge("F", "G", cost=1)
+G.add_edge("G", "F", cost=1)
+G.add_edge("F", "C", cost=1)
+G.add_edge("C", "D", cost=10)
+G.add_edge("E", "D", cost=2)
+G.add_edge("G", "E", cost=2)
 ```
 
-Create `Edges` between `Nodes` (nodes are implicitly created if they don't exist).
+Use ACO to find the shortest path and cost between the `source` and `destination`:
 ```python
-graph.add_edge("A", "B", travel_time=2)
-graph.add_edge("B", "C", travel_time=2)
-graph.add_edge("A", "H", travel_time=2)
-graph.add_edge("H", "G", travel_time=2)
-graph.add_edge("C", "F", travel_time=1)
-graph.add_edge("F", "G", travel_time=1)
-graph.add_edge("G", "F", travel_time=1)
-graph.add_edge("F", "C", travel_time=1)
-graph.add_edge("C", "D", travel_time=10)
-graph.add_edge("E", "D", travel_time=2)
-graph.add_edge("G", "E", travel_time=2)
-```
+aco = ACO(G, ant_max_steps=100, num_iterations=100, ant_random_spawn=True)
 
-Define a `source` and `destination` as well as create objects for the `Dijkstra` and `ACO` classes.
-```python
-source = "A"
-destination = "D"
-
-aco = ACO(graph)
-dijkstra = Dijkstra(graph)
-```
-
-Find the shortest path between the `source` and `destination` as well the cost of the path using `Dijkstra` and `ACO`.
-```python
-dijkstra_path, dijkstra_cost = dijkstra.find_shortest_path(source, destination)
-aco_path, aco_cost = aco.find_shortest_path(source, destination)
-
-print(f"ACO - path: {aco_path}, cost: {aco_cost}")
-print(f"Dijkstra - path: {dijkstra_path}, cost: {dijkstra_cost}")
+aco_path, aco_cost = aco.find_shortest_path(
+    source="A",
+    destination="D",
+    num_ants=100,
+)
 ```
 
 Output:
 ```
-ACO - path: ['A', 'H', 'G', 'E', 'D'], cost: 8.0
-Dijkstra - path: ['A', 'H', 'G', 'E', 'D'], cost: 8.0
+ACO path: A -> H -> G -> E -> D
+ACO path cost: 8.0
 ```
 
 ## 📦 Contents <a name = "contents"></a>
 
-### Graph
-`aco_routing.Graph`
-- A Directed Graph class which consists of `Nodes` and `Edges`.
-- The `evaporation_rate` is initialized here.
-
-### Node
-`aco_routing.Node`
-- A `Node` class which represents a node in the Graph and consists of various outgoing edges.
-
-### Edge
-`aco_routing.Edge`
-- An `Edge` class which represents a link between 2 nodes in the Graph.
-- Each `Edge` has 2 parameters:
-    - `travel_time`: The amount of time it takes to traverse the edge. A high value indicates more traffic.
-    - `pheromones`: A heuristic parameter i.e., the pheromone values deposited by the ants.
-
-### Dijkstra
-`aco_routing.Dijkstra`
-- The baseline algorithm to compare the results of the candidate algorithm with.
-- The Dijkstra's algorithm ([source](https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm)) returns the shortest path between any 2 nodes in a graph.
-
 ### Ant
 `aco_routing.Ant`
-- The `Ant` class representing an ant that traverses the graph.
+- An `Ant` that traverses the graph.
 
 ### ACO
 `aco_routing.ACO`
-- The traditional Ant Colony Optimization algorithm that spawns various ants at random nodes and tries to find the shortest path between the specified source and destination.
-
-<hr>
+- The traditional Ant Colony Optimization algorithm that spawns ants at various nodes in the graph and finds the shortest path between the specified source and destination ([pseudo code](https://en.wikipedia.org/wiki/Ant_colony_optimization_algorithms#Algorithm_and_formula)).
 
 
 ## Contributing

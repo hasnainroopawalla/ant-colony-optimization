@@ -5,7 +5,7 @@ from typing import Dict
 def compute_edge_desirability(
     pheromone_value: float, edge_cost: float, alpha: float, beta: float
 ) -> float:
-    return pheromone_value**alpha * (1 / edge_cost) ** beta
+    return pow(pheromone_value, alpha) * pow((1 / edge_cost), beta)
 
 
 def roulette_wheel_selection(probabilities: Dict[str, float]) -> str:
