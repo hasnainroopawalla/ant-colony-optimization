@@ -1,191 +1,160 @@
 from dataclasses import dataclass, field
-import random
-from typing import Dict, List, Set
+from typing import Dict, List, Set, Union
 
-from aco_routing.graph import Edge, Graph
+from aco_routing import utils
+from aco_routing.graph_api import GraphApi
 
 
 @dataclass
 class Ant:
-    """A class for an Ant that traverses the graph.
-
-    Args:
-        graph (Graph): The Graph object.
-        source (str): The source node of the ant.
-        destination (str): The destination node of the ant.
-        alpha (float, optional): The amount of importance given to the pheromone by the ant. Defaults to 0.9.
-        beta (float, optional): The amount of importance given to the travel time value by the ant. Defaults to 0.1.
-        visited_nodes (Set, optional): A set of nodes that have been visited by the ant.
-        path (List[str], optional): A List of node IDs of the path taken by the ant so far.
-        is_fit (bool, optional): Indicates if the ant has reached the destination (fit) or not (unfit). Defaults to False.
-        is_solution_ant (bool, optional): Indicates if the ant is the final/solution ant. Defaults to False.
-    """
-
-    graph: Graph
+    graph_api: GraphApi
     source: str
     destination: str
+    # Pheromone bias
     alpha: float = 0.7
+    # Edge cost bias
     beta: float = 0.3
+    # Set of nodes that have been visited by the ant
     visited_nodes: Set = field(default_factory=set)
+    # Path taken by the ant so far
     path: List[str] = field(default_factory=list)
+    # Cost of the path taken by the ant so far
+    path_cost: float = 0.0
+    # Indicates if the ant has reached the destination (fit) or not (unfit)
     is_fit: bool = False
+    # Indicates if the ant is the pheromone-greedy solution ant
     is_solution_ant: bool = False
 
     def __post_init__(self) -> None:
+        # Set the spawn node as the current and first node
         self.current_node = self.source
         self.path.append(self.source)
 
     def reached_destination(self) -> bool:
-        """Checks if the ant has reached the destination node in the graph.
+        """Returns if the ant has reached the destination node in the graph
 
         Returns:
-            bool: True, if the ant has reached the destination.
+            bool: returns True if the ant has reached the destination
         """
         return self.current_node == self.destination
 
-    def _get_unvisited_neighbors(
-        self, all_neighbors: Dict[str, Edge]
-    ) -> Dict[str, Edge]:
-        """Returns a subset of the all the neighbors of the node which are unvisited.
-
-        Args:
-            all_neighbors (Dict[str, Edge]): A set of all neighbors of the node.
+    def _get_unvisited_neighbors(self) -> List[str]:
+        """Returns a subset of the neighbors of the node which are unvisited
 
         Returns:
-            Dict[str, Edge]: A subset of all the unvisited neighbors.
+            List[str]: A list of all the unvisited neighbors
         """
-        unvisited_neighbors = {}
-        for neighbor, edge in all_neighbors.items():
-            if neighbor in self.visited_nodes:
-                continue
-            unvisited_neighbors[neighbor] = edge
-        return unvisited_neighbors
+        return [
+            node
+            for node in self.graph_api.get_neighbors(self.current_node)
+            if node not in self.visited_nodes
+        ]
 
-    @staticmethod
-    def _calculate_edges_total(
-        unvisited_neighbors: Dict[str, Edge], alpha: float, beta: float
+    def _compute_all_edges_desirability(
+        self,
+        unvisited_neighbors: List[str],
     ) -> float:
-        """Computes the denominator of the transition probability equation for the ant.
+        """Computes the denominator of the transition probability equation for the ant
 
         Args:
-            unvisited_neighbors (Dict[str, Edge]): A set of unvisited neighbors of the current node.
-            alpha (float): [description]: The alpha value.
-            beta (float): [description]: The beta value.
+            unvisited_neighbors (List[str]): All unvisited neighbors of the current node
 
         Returns:
-            float: The summation of all the outgoing edges (to unvisited nodes) from the current node.
+            float: The summation of all the outgoing edges (to unvisited nodes) from the current node
         """
         total = 0.0
-        for neighbor, edge in unvisited_neighbors.items():
-            total += (edge.pheromones**alpha) * ((1 / edge.travel_time) ** beta)
+        for neighbor in unvisited_neighbors:
+            edge_pheromones = self.graph_api.get_edge_pheromones(
+                self.current_node, neighbor
+            )
+            edge_cost = self.graph_api.get_edge_cost(self.current_node, neighbor)
+            total += utils.compute_edge_desirability(
+                edge_pheromones, edge_cost, self.alpha, self.beta
+            )
+
         return total
 
-    @staticmethod
-    def _calculate_edge_probabilites(
-        unvisited_neighbors: Dict[str, Edge], alpha: float, beta: float, total: float
+    def _calculate_edge_probabilities(
+        self, unvisited_neighbors: List[str]
     ) -> Dict[str, float]:
-        """Computes the transition probabilities of all the edges from the current node.
+        """Computes the transition probabilities of all the edges from the current node
 
         Args:
-            unvisited_neighbors (Dict[str, Edge]): A set of unvisited neighbors of the current node.
-            alpha (float): [description]: The alpha value.
-            beta (float): [description]: The beta value.
-            total (float): [description]: The summation of all the outgoing edges (to unvisited nodes) from the current node.
+            unvisited_neighbors (List[str]): A list of unvisited neighbors of the current node
 
         Returns:
-            Dict[str, float]: A dictionary mapping node IDs to their transition probabilities.
+            Dict[str, float]: A dictionary mapping nodes to their transition probabilities
         """
-        probabilities = {}
-        for neighbor, edge in unvisited_neighbors.items():
-            probabilities[neighbor] = (
-                (edge.pheromones**alpha) * ((1 / edge.travel_time) ** beta)
-            ) / total
+        probabilities: Dict[str, float] = {}
+
+        all_edges_desirability = self._compute_all_edges_desirability(
+            unvisited_neighbors
+        )
+
+        for neighbor in unvisited_neighbors:
+            edge_pheromones = self.graph_api.get_edge_pheromones(
+                self.current_node, neighbor
+            )
+            edge_cost = self.graph_api.get_edge_cost(self.current_node, neighbor)
+
+            current_edge_desirability = utils.compute_edge_desirability(
+                edge_pheromones, edge_cost, self.alpha, self.beta
+            )
+            probabilities[neighbor] = current_edge_desirability / all_edges_desirability
+
         return probabilities
 
-    @staticmethod
-    def _sort_edge_probabilites(probabilities: Dict[str, float]):
-        """Sorts the probabilities of the edges in descending order.
-
-        Args:
-            probabilities (Dict[str, float]): A dictionary mapping the node IDs to their transition probabilities.
+    def _choose_next_node(self) -> Union[str, None]:
+        """Choose the next node to be visited by the ant
 
         Returns:
-            [type]: A sorted dictionary mapping node IDs to their transition probabilities.
+            [str, None]: The computed next node to be visited by the ant or None if no possible moves
         """
-        return {
-            k: v for k, v in sorted(probabilities.items(), key=lambda item: -item[1])
-        }
+        unvisited_neighbors = self._get_unvisited_neighbors()
 
-    @staticmethod
-    def _choose_neighbor_using_roulette_wheel(
-        sorted_probabilities: Dict[str, float]
-    ) -> str:
-        """Chooses the next node to be visited using the Roulette Wheel selection technique.
-
-        Args:
-            sorted_probabilities (Dict[str, Edge]): A sorted dictionary mapping node IDs to their transition probabilities.
-
-        Returns:
-            str: The ID of the next node to be visited by the ant.
-        """
-        pick = random.uniform(0, sum(sorted_probabilities.values()))
-        current = 0.0
-        next_node = ""
-        for key, value in sorted_probabilities.items():
-            current += value
-            if current > pick:
-                next_node = key
-                break
-        return next_node
-
-    def _pick_next_node(
-        self, unvisited_neighbors: Dict[str, Edge], alpha: float, beta: float
-    ) -> str:
-        """Chooses the next node to be visited by the ant using the Roulette Wheel selection technique.
-
-        Args:
-            unvisited_neighbors (Dict[str, Edge]): A set of unvisited neighbors of the current node.
-            alpha (float): [description]: The alpha value.
-            beta (float): [description]: The beta value.
-
-        Returns:
-            str: The ID of the next node to be visited by the ant.
-        """
         if self.is_solution_ant:
-            # The final/solution ant greedily chooses the next node with the highest pheromone value.
+            if len(unvisited_neighbors) == 0:
+                raise Exception(
+                    f"No path found from {self.source} to {self.destination}"
+                )
+
+            # The final/solution ant greedily chooses the next node with the highest pheromone value
             return max(
-                unvisited_neighbors, key=lambda k: unvisited_neighbors[k].pheromones
+                unvisited_neighbors,
+                key=lambda neighbor: self.graph_api.get_edge_pheromones(
+                    self.current_node, neighbor
+                ),
             )
-        edges_total = self._calculate_edges_total(unvisited_neighbors, alpha, beta)
 
-        probabilities = self._calculate_edge_probabilites(
-            unvisited_neighbors, edges_total, alpha, beta
-        )
-        sorted_probabilities = self._sort_edge_probabilites(probabilities)
+        # Check if ant has no possible nodes to move to
+        if len(unvisited_neighbors) == 0:
+            return None
 
-        # Pick the next node based on the Roulette Wheel selection technique.
-        return self._choose_neighbor_using_roulette_wheel(sorted_probabilities)
+        probabilities = self._calculate_edge_probabilities(unvisited_neighbors)
+
+        # Pick the next node based on the roulette wheel selection technique
+        return utils.roulette_wheel_selection(probabilities)
 
     def take_step(self) -> None:
-        """This method allows the ant to travel to a neighbor of the current node in the graph."""
-        # Mark the node as visited.
+        """Compute and update the ant position"""
+        # Mark the current node as visited
         self.visited_nodes.add(self.current_node)
 
-        # Find all the neighboring nodes of the current node.
-        all_neighbors = self.graph.get_node_edges(self.current_node)
+        # Pick the next node of the ant
+        next_node = self._choose_next_node()
 
-        # Check if the current node has no neighbors (isolated node).
-        if len(all_neighbors) == 0:
-            return
-
-        # Find unvisited neighbors of the current node.
-        unvisited_neighbors = self._get_unvisited_neighbors(all_neighbors)
-
-        # Pick the next node of the ant.
-        next_node = self._pick_next_node(unvisited_neighbors, self.alpha, self.beta)
-
+        # Check if ant is stuck at current node
         if not next_node:
+            # TODO: optimization: set ant as unfit
             return
 
         self.path.append(next_node)
+        self.path_cost += self.graph_api.get_edge_cost(self.current_node, next_node)
         self.current_node = next_node
+
+    def deposit_pheromones_on_path(self) -> None:
+        """Updates the pheromones along all the edges in the path"""
+        for i in range(len(self.path) - 1):
+            u, v = self.path[i], self.path[i + 1]
+            new_pheromone_value = 1 / self.path_cost
+            self.graph_api.deposit_pheromones(u, v, new_pheromone_value)

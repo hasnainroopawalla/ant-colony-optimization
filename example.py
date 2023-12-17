@@ -1,29 +1,34 @@
-from aco_routing import Graph, Dijkstra, ACO
+import networkx as nx
+from aco_routing import ACO
 
-graph = Graph()
 
-graph.add_edge("A", "B", 2)
-graph.add_edge("B", "C", 2)
-graph.add_edge("A", "H", 2)
-graph.add_edge("H", "G", 2)
-graph.add_edge("C", "F", 1)
-graph.add_edge("F", "G", 1)
-graph.add_edge("G", "F", 1)
-graph.add_edge("F", "C", 1)
-graph.add_edge("C", "D", 10)
-graph.add_edge("E", "D", 2)
-graph.add_edge("G", "E", 2)
+G = nx.DiGraph()
+
+G.add_edge("A", "B", cost=2)
+G.add_edge("B", "C", cost=2)
+G.add_edge("A", "H", cost=2)
+G.add_edge("H", "G", cost=2)
+G.add_edge("C", "F", cost=1)
+G.add_edge("F", "G", cost=1)
+G.add_edge("G", "F", cost=1)
+G.add_edge("F", "C", cost=1)
+G.add_edge("C", "D", cost=10)
+G.add_edge("E", "D", cost=2)
+G.add_edge("G", "E", cost=2)
 
 source = "A"
 destination = "D"
 
-dijkstra = Dijkstra(graph)
-aco = ACO(graph)
+dijkstra_path = nx.dijkstra_path(G, source, destination)
+dijkstra_cost = nx.path_weight(G, dijkstra_path, "cost")
+
+aco = ACO(G, ant_max_steps=100, num_iterations=100, ant_random_spawn=True)
 
 aco_path, aco_cost = aco.find_shortest_path(
-    source, destination, num_ants=100, max_iterations=50, cycles=100
+    source,
+    destination,
+    num_ants=100,
 )
-dijkstra_path, dijkstra_cost = dijkstra.find_shortest_path(source, destination)
 
-print(f"ACO - path: {aco_path}, cost: {aco_cost}")
 print(f"Dijkstra - path: {dijkstra_path}, cost: {dijkstra_cost}")
+print(f"ACO - path: {aco_path}, cost: {aco_cost}")

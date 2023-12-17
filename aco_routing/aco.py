@@ -1,120 +1,128 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import random
 from typing import List, Tuple
+import networkx as nx
 
-from aco_routing.graph import Graph
 from aco_routing.ant import Ant
+from aco_routing.graph_api import GraphApi
 
 
 @dataclass
 class ACO:
-    graph: Graph
+    graph: nx.DiGraph
+    # Maximum number of steps an ant is allowed is to take in order to reach the destination
+    ant_max_steps: int
+    # Number of cycles/waves of search ants to be deployed
+    num_iterations: int
+    # Indicates if the search ants should spawn at random nodes in the graph
+    ant_random_spawn: bool = True
+    # Evaporation rate (rho)
+    evaporation_rate: float = 0.1
+    # Pheromone bias
+    alpha: float = 0.7
+    # Edge cost bias
+    beta: float = 0.3
+    # Search ants
+    search_ants: List[Ant] = field(default_factory=list)
 
-    def _forward_ants(self, ants: List[Ant], max_iterations: int) -> None:
-        """Deploys forward search ants in the graph.
+    def __post_init__(self):
+        # Initialize the Graph API
+        self.graph_api = GraphApi(self.graph, self.evaporation_rate)
+        # Initialize all edges of the graph with a pheromone value of 1.0
+        for edge in self.graph.edges:
+            self.graph_api.set_edge_pheromones(edge[0], edge[1], 1.0)
 
-        Args:
-            ants (List[Ant]): A List of Ants.
-            max_iterations (int): The maximum number of steps an ant is allowed is to take in order to reach the destination.
-                If it fails to find a path, it is tagged as unfit.
-        """
-        for _, ant in enumerate(ants):
-            for _ in range(max_iterations):
+    def _deploy_forward_search_ants(self) -> None:
+        """Deploy forward search ants in the graph"""
+        for ant in self.search_ants:
+            for _ in range(self.ant_max_steps):
                 if ant.reached_destination():
                     ant.is_fit = True
                     break
                 ant.take_step()
 
-    def _backward_ants(self, ants: List[Ant]) -> None:
-        """Sends the ants (which are fit) backwards towards the source while they drop pheromones on the path.
-
-        Args:
-            ants (List[Ant]): A List of Ants.
-        """
-        for _, ant in enumerate(ants):
+    def _deploy_backward_search_ants(self) -> None:
+        """Deploy fit search ants back towards their source node while dropping pheromones on the path"""
+        for ant in self.search_ants:
             if ant.is_fit:
-                self.graph.deposit_pheromones_along_path(ant.path)
+                ant.deposit_pheromones_on_path()
 
     def _deploy_search_ants(
         self,
         source: str,
         destination: str,
         num_ants: int,
-        cycles: int,
-        random_spawns: bool,
-        max_iterations: int = 50,
     ) -> None:
-        """Deploys search ants which traverse the graph to find the shortest path.
+        """Deploy search ants that traverse the graph to find the shortest path
 
         Args:
-            source (str): The source node in the graph.
-            destination (str): The destination node in the graph.
-            num_ants (int): The number of ants to be spawned.
-            cycles (int): The number of cycles of generating and deploying ants (forward and backward).
-            random_spawns (bool): Indicates if the search ants should spawn at random nodes in the graph.
-            max_iterations (int, optional): The maximum number of steps an ant is allowed is to take in order to reach the destination,
-                after which it is tagged as unfit. Defaults to 50.
+            source (str): The source node in the graph
+            destination (str): The destination node in the graph
+            num_ants (int): The number of ants to be spawned
         """
-        for _ in range(cycles):
-            ants: List[Ant] = []
+        for _ in range(self.num_iterations):
+            self.search_ants.clear()
+
             for _ in range(num_ants):
                 spawn_point = (
-                    random.choice(self.graph.get_all_nodes())
-                    if random_spawns
+                    random.choice(self.graph_api.get_all_nodes())
+                    if self.ant_random_spawn
                     else source
                 )
-                ants.append(Ant(self.graph, spawn_point, destination))
-            self._forward_ants(ants, max_iterations)
-            self.graph.evaporate()
-            self._backward_ants(ants)
 
-    def _deploy_solution_ant(self, source: str, destination: str) -> List[str]:
-        """Deploys the final ant that greedily w.r.t. the pheromones finds the shortest path from the source to the destination.
+                ant = Ant(
+                    self.graph_api,
+                    spawn_point,
+                    destination,
+                    alpha=self.alpha,
+                    beta=self.beta,
+                )
+                self.search_ants.append(ant)
+
+            self._deploy_forward_search_ants()
+            self._deploy_backward_search_ants()
+
+    def _deploy_solution_ant(self, source: str, destination: str) -> Ant:
+        """Deploy the pheromone-greedy solution to find the shortest path
 
         Args:
-            source (str): The source node in the graph.
-            destination (str): The destination node in the graph.
+            source (str): The source node in the graph
+            destination (str): The destination node in the graph
 
         Returns:
-            List[str]: The shortest path found by the ants (A list of node IDs).
+            Ant: The solution ant with the computed shortest path and cost
         """
-        # Spawn an ant which favors pheromone values over edge costs.
-        ant = Ant(self.graph, source, destination, is_solution_ant=True)
+        ant = Ant(
+            self.graph_api,
+            source,
+            destination,
+            is_solution_ant=True,
+        )
         while not ant.reached_destination():
             ant.take_step()
-        return ant.path
+        return ant
 
     def find_shortest_path(
         self,
         source: str,
         destination: str,
         num_ants: int,
-        max_iterations: int,
-        cycles: int,
-        random_spawn: bool = True,
     ) -> Tuple[List[str], float]:
-        """Finds the shortest path from the source to the destination in the graph using the traditional Ant Colony Optimization technique.
+        """Finds the shortest path from the source to the destination in the graph
 
         Args:
-            source (str): The source node in the graph.
-            destination (str): The destination node in the graph.
-            num_ants (int): The number of search ants to be deployed.
-            max_iterations (int): The maximum number of steps an ant is allowed is to take in order to reach the destination,
-                after which it is tagged as unfit. Defaults to 50.
-            cycles (int): The number of cycles/waves of search ants to be deployed.
-            random_spawn (bool, optional): Indicates if the search ants should spawn at random nodes in the graph. Defaults to True.
+            source (str): The source node in the graph
+            destination (str): The destination node in the graph
+            num_ants (int): The number of search ants to be deployed
 
         Returns:
-            List[str]: The shortest path found by the ants (a list of node IDs).
-            float: The total travel time of the shortest path.
+            List[str]: The shortest path found by the ants
+            float: The cost of the computed shortest path
         """
         self._deploy_search_ants(
             source,
             destination,
-            num_ants=num_ants,
-            max_iterations=max_iterations,
-            cycles=cycles,
-            random_spawns=random_spawn,
+            num_ants,
         )
-        shortest_path = self._deploy_solution_ant(source, destination)
-        return shortest_path, self.graph.compute_path_travel_time(shortest_path)
+        solution_ant = self._deploy_solution_ant(source, destination)
+        return solution_ant.path, solution_ant.path_cost
