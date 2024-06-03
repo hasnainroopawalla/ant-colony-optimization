@@ -89,7 +89,3 @@ ACO path cost: 8.0
 
 - Post any issues and suggestions on the GitHub [issues](https://github.com/hasnainroopawalla/Ant-Colony-Optimization/issues) page.
 - To contribute, fork the project and then create a pull request back to master.
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](https://github.com/hasnainroopawalla/Ant-Colony-Optimization/blob/73b65a6fd14e3e5517b479cfecac1140f0ae7899/LICENSE) file for details.
