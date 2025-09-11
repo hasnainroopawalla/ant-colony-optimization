@@ -38,6 +38,30 @@ class Ant:
         """
         return self.current_node == self.destination
 
+    def take_step(self) -> None:
+        """Compute and update the ant position"""
+        # Mark the current node as visited
+        self.visited_nodes.add(self.current_node)
+
+        # Pick the next node of the ant
+        next_node = self._choose_next_node()
+
+        # Check if ant is stuck at current node
+        if not next_node:
+            # TODO: optimization: set ant as unfit
+            return
+
+        self.path.append(next_node)
+        self.path_cost += self.graph_api.get_edge_cost(self.current_node, next_node)
+        self.current_node = next_node
+
+    def deposit_pheromones_on_path(self) -> None:
+        """Updates the pheromones along all the edges in the path"""
+        for i in range(len(self.path) - 1):
+            u, v = self.path[i], self.path[i + 1]
+            new_pheromone_value = 1 / self.path_cost
+            self.graph_api.deposit_pheromones(u, v, new_pheromone_value)
+
     def _get_unvisited_neighbors(self) -> List[str]:
         """Returns a subset of the neighbors of the node which are unvisited
 
@@ -134,27 +158,3 @@ class Ant:
 
         # Pick the next node based on the roulette wheel selection technique
         return utils.roulette_wheel_selection(probabilities)
-
-    def take_step(self) -> None:
-        """Compute and update the ant position"""
-        # Mark the current node as visited
-        self.visited_nodes.add(self.current_node)
-
-        # Pick the next node of the ant
-        next_node = self._choose_next_node()
-
-        # Check if ant is stuck at current node
-        if not next_node:
-            # TODO: optimization: set ant as unfit
-            return
-
-        self.path.append(next_node)
-        self.path_cost += self.graph_api.get_edge_cost(self.current_node, next_node)
-        self.current_node = next_node
-
-    def deposit_pheromones_on_path(self) -> None:
-        """Updates the pheromones along all the edges in the path"""
-        for i in range(len(self.path) - 1):
-            u, v = self.path[i], self.path[i + 1]
-            new_pheromone_value = 1 / self.path_cost
-            self.graph_api.deposit_pheromones(u, v, new_pheromone_value)

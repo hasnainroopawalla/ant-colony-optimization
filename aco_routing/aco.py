@@ -32,6 +32,31 @@ class ACO:
         for edge in self.graph.edges:
             self.graph_api.set_edge_pheromones(edge[0], edge[1], 1.0)
 
+    def find_shortest_path(
+        self,
+        source: str,
+        destination: str,
+        num_ants: int,
+    ) -> Tuple[List[str], float]:
+        """Finds the shortest path from the source to the destination in the graph
+
+        Args:
+            source (str): The source node in the graph
+            destination (str): The destination node in the graph
+            num_ants (int): The number of search ants to be deployed
+
+        Returns:
+            List[str]: The shortest path found by the ants
+            float: The cost of the computed shortest path
+        """
+        self._deploy_search_ants(
+            source,
+            destination,
+            num_ants,
+        )
+        solution_ant = self._deploy_solution_ant(source, destination)
+        return solution_ant.path, solution_ant.path_cost
+
     def _deploy_forward_search_ants(self) -> None:
         """Deploy forward search ants in the graph"""
         for ant in self.search_ants:
@@ -101,28 +126,3 @@ class ACO:
         while not ant.reached_destination():
             ant.take_step()
         return ant
-
-    def find_shortest_path(
-        self,
-        source: str,
-        destination: str,
-        num_ants: int,
-    ) -> Tuple[List[str], float]:
-        """Finds the shortest path from the source to the destination in the graph
-
-        Args:
-            source (str): The source node in the graph
-            destination (str): The destination node in the graph
-            num_ants (int): The number of search ants to be deployed
-
-        Returns:
-            List[str]: The shortest path found by the ants
-            float: The cost of the computed shortest path
-        """
-        self._deploy_search_ants(
-            source,
-            destination,
-            num_ants,
-        )
-        solution_ant = self._deploy_solution_ant(source, destination)
-        return solution_ant.path, solution_ant.path_cost
