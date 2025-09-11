@@ -19,7 +19,7 @@ G.add_edge("G", "E", cost=2)
 source = "A"
 destination = "D"
 
-dijkstra_path = nx.dijkstra_path(G, source, destination)
+dijkstra_path = nx.dijkstra_path(G, source, destination, weight="cost")
 dijkstra_cost = nx.path_weight(G, dijkstra_path, "cost")
 
 aco = ACO(G, ant_max_steps=100, num_iterations=100, ant_random_spawn=True)
