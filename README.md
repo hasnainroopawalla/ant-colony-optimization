@@ -1,7 +1,5 @@
 <h1 align="center">Ant Colony Optimization</h1>
 
-[![Develop](https://github.com/hasnainroopawalla/Ant-Colony-Optimization/actions/workflows/develop.yml/badge.svg)](https://github.com/hasnainroopawalla/Ant-Colony-Optimization/actions/workflows/develop.yml)
-[![Deploy](https://github.com/hasnainroopawalla/Ant-Colony-Optimization/actions/workflows/deploy.yml/badge.svg)](https://github.com/hasnainroopawalla/Ant-Colony-Optimization/actions/workflows/deploy.yml)
 [![PyPi version](https://img.shields.io/pypi/v/aco_routing.svg)](https://pypi.python.org/pypi/aco_routing/)
 ![Downloads](https://img.shields.io/pypi/dm/aco_routing.svg)
 
